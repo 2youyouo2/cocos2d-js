@@ -3363,6 +3363,27 @@ bool js_cocos2dx_AnimationCache_destroyInstance(JSContext *cx, uint32_t argc, js
 bool js_cocos2dx_AnimationCache_getInstance(JSContext *cx, uint32_t argc, jsval *vp);
 bool js_cocos2dx_AnimationCache_AnimationCache(JSContext *cx, uint32_t argc, jsval *vp);
 
+extern JSClass  *jsb_cocos2d_MeshSprite_class;
+extern JSObject *jsb_cocos2d_MeshSprite_prototype;
+
+bool js_cocos2dx_MeshSprite_constructor(JSContext *cx, uint32_t argc, jsval *vp);
+void js_cocos2dx_MeshSprite_finalize(JSContext *cx, JSObject *obj);
+void js_register_cocos2dx_MeshSprite(JSContext *cx, JSObject *global);
+void register_all_cocos2dx(JSContext* cx, JSObject* obj);
+bool js_cocos2dx_MeshSprite_reset(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_setTexture(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_getTexture(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_getTexCoord(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_setBlendFunc(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_setTexCoord(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_getBlendFunc(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_getVertice(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_tintWithColor(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_setVertice(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_initWithFade(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_create(JSContext *cx, uint32_t argc, jsval *vp);
+bool js_cocos2dx_MeshSprite_MeshSprite(JSContext *cx, uint32_t argc, jsval *vp);
+
 extern JSClass  *jsb_cocos2d_SpriteFrameCache_class;
 extern JSObject *jsb_cocos2d_SpriteFrameCache_prototype;
 

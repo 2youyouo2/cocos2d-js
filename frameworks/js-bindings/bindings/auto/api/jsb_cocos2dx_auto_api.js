@@ -18025,6 +18025,168 @@ AnimationCache : function (
 };
 
 /**
+ * @class MeshSprite
+ */
+cc.MeshSprite = {
+
+/**
+ * @method reset
+ */
+reset : function (
+)
+{
+},
+
+/**
+ * @method setTexture
+ * @param {cc.Texture2D} arg0
+ */
+setTexture : function (
+texture2d 
+)
+{
+},
+
+/**
+ * @method getTexture
+ * @return {cc.Texture2D}
+ */
+getTexture : function (
+)
+{
+    return cc.Texture2D;
+},
+
+/**
+ * @method getTexCoord
+ * @param {int} arg0
+ * @param {int} arg1
+ * @return {vec2_object}
+ */
+getTexCoord : function (
+int, 
+int 
+)
+{
+    return cc.Vec2;
+},
+
+/**
+ * @method setBlendFunc
+ * @param {cc.BlendFunc} arg0
+ */
+setBlendFunc : function (
+blendfunc 
+)
+{
+},
+
+/**
+ * @method setTexCoord
+ * @param {int} arg0
+ * @param {int} arg1
+ * @param {vec2_object} arg2
+ */
+setTexCoord : function (
+int, 
+int, 
+vec2 
+)
+{
+},
+
+/**
+ * @method getBlendFunc
+ * @return {cc.BlendFunc}
+ */
+getBlendFunc : function (
+)
+{
+    return cc.BlendFunc;
+},
+
+/**
+ * @method getVertice
+ * @param {int} arg0
+ * @param {int} arg1
+ * @return {vec2_object}
+ */
+getVertice : function (
+int, 
+int 
+)
+{
+    return cc.Vec2;
+},
+
+/**
+ * @method tintWithColor
+ * @param {color3b_object} arg0
+ */
+tintWithColor : function (
+color3b 
+)
+{
+},
+
+/**
+ * @method setVertice
+ * @param {int} arg0
+ * @param {int} arg1
+ * @param {vec2_object} arg2
+ */
+setVertice : function (
+int, 
+int, 
+vec2 
+)
+{
+},
+
+/**
+ * @method initWithFade
+* @param {int|int} int
+* @param {int|int} int
+* @param {cc.Texture2D|String} texture2d
+* @return {bool|bool}
+*/
+initWithFade : function(
+int,
+int,
+str 
+)
+{
+    return false;
+},
+
+/**
+ * @method create
+* @param {int|int} int
+* @param {int|int} int
+* @param {cc.Texture2D|String} texture2d
+* @return {cc.MeshSprite|cc.MeshSprite}
+*/
+create : function(
+int,
+int,
+str 
+)
+{
+    return cc.MeshSprite;
+},
+
+/**
+ * @method MeshSprite
+ * @constructor
+ */
+MeshSprite : function (
+)
+{
+},
+
+};
+
+/**
  * @class SpriteFrameCache
  */
 cc.SpriteFrameCache = {
