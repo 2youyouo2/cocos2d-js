@@ -47,16 +47,20 @@
  *
  */
 
-cc.game.onStart = function(){
-    if(!cc.sys.isNative) //If referenced loading.js, please remove it
-        document.body.removeChild(document.getElementById("cocosLoading"));
+var cl = cl ? cl : {};
+cl.clDir = "./frameworks/cocos2d-html5/cocoslite";
 
-    cc.view.adjustViewPort(true);
-    cc.view.setDesignResolutionSize(800, 450, cc.ResolutionPolicy.SHOW_ALL);
-    cc.view.resizeWithBrowserSize(true);
-    //load resources
-    cc.LoaderScene.preload(g_resources, function () {
-        cc.director.runScene(new HelloWorldScene());
-    }, this);
+cc.loader.loadJsWithImg = cc.loader.loadJs;
+
+cc.game.onStart = function() {
+
+	cc.view.adjustViewPort(true);
+	cc.view.setDesignResolutionSize(800, 450, cc.ResolutionPolicy.SHOW_ALL);
+	cc.view.resizeWithBrowserSize(true);
+    
+	cl.SceneManager.loadScene("res/main.js.scene", function(s){
+		cc.director.runScene(s);
+	}, true);
 };
+
 cc.game.run();
