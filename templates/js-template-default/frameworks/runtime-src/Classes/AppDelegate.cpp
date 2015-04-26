@@ -7,6 +7,9 @@
 #include "jsb_cocos2dx_builder_auto.hpp"
 #include "jsb_cocos2dx_spine_auto.hpp"
 #include "jsb_cocos2dx_extension_auto.hpp"
+#include "jsb_cocos2dx_3d_auto.hpp"
+#include "jsb_cocos2dx_3d_extension_auto.hpp"
+#include "3d/jsb_cocos2dx_3d_manual.h"
 #include "ui/jsb_cocos2dx_ui_manual.h"
 #include "cocostudio/jsb_cocos2dx_studio_manual.h"
 #include "cocosbuilder/js_bindings_ccbreader.h"
@@ -50,7 +53,7 @@ bool AppDelegate::applicationDidFinishLaunching()
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
     if(!glview) {
-#if(CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
+#if(CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
         glview = cocos2d::GLViewImpl::create("HelloJavascript");
 #else
         glview = cocos2d::GLViewImpl::createWithRect("HelloJavascript", Rect(0,0,900,640));
@@ -64,7 +67,6 @@ bool AppDelegate::applicationDidFinishLaunching()
     ScriptingCore* sc = ScriptingCore::getInstance();
     sc->addRegisterCallback(register_all_cocos2dx);
     sc->addRegisterCallback(register_cocos2dx_js_core);
-    sc->addRegisterCallback(register_cocos2dx_js_extensions);
     sc->addRegisterCallback(jsb_register_system);
 
     // extension can be commented out to reduce the package
@@ -98,6 +100,13 @@ bool AppDelegate::applicationDidFinishLaunching()
     sc->addRegisterCallback(register_jsb_websocket);
     // sokcet io can be commented out to reduce the package
     sc->addRegisterCallback(register_jsb_socketio);
+
+    // 3d can be commented out to reduce the package
+    sc->addRegisterCallback(register_all_cocos2dx_3d);
+    sc->addRegisterCallback(register_all_cocos2dx_3d_manual);
+    
+    // 3d extension can be commented out to reduce the package
+    sc->addRegisterCallback(register_all_cocos2dx_3d_extension);
     
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     sc->addRegisterCallback(JavascriptJavaBridge::_js_register);
@@ -106,6 +115,9 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
     sc->start();    
     sc->runScript("script/jsb_boot.js");
+#if defined(COCOS2D_DEBUG) && (COCOS2D_DEBUG > 0)
+    sc->enableDebugger();
+#endif
     ScriptEngineProtocol *engine = ScriptingCore::getInstance();
     ScriptEngineManager::getInstance()->setScriptEngine(engine);
     ScriptingCore::getInstance()->runScript("main.js");

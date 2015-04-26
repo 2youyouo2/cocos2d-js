@@ -50,9 +50,7 @@ JSStringWrapper::JSStringWrapper(jsval val, JSContext* cx/* = NULL*/)
 
 JSStringWrapper::~JSStringWrapper()
 {
-#if(CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
-    CC_SAFE_DELETE_ARRAY(_buffer); //XXX: why break on wp8?
-#endif
+    JS_free(ScriptingCore::getInstance()->getGlobalContext(), (void*)_buffer);
 }
 
 void JSStringWrapper::set(jsval val, JSContext* cx)
@@ -83,7 +81,11 @@ void JSStringWrapper::set(JSString* str, JSContext* cx)
 
 //    _buffer = cc_utf16_to_utf8(pStrUTF16, -1, NULL, NULL);
 
+#if(CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     _buffer = JS_EncodeString(cx, str);
+#else
+    _buffer = JS_EncodeStringToUTF8(cx, JS::RootedString(cx, str));
+#endif
 }
 
 const char* JSStringWrapper::get()
@@ -536,12 +538,17 @@ bool jsval_to_long_long(JSContext *cx, JS::HandleValue vp, long long* r)
 }
 
 bool jsval_to_std_string(JSContext *cx, JS::HandleValue v, std::string* ret) {
-    JSString *tmp = JS::ToString(cx, v);
-    JSB_PRECONDITION3(tmp, cx, false, "Error processing arguments");
-    
-    JSStringWrapper str(tmp);
-    *ret = str.get();
-    return true;
+    if(v.isString() || v.isNumber())
+    {
+        JSString *tmp = JS::ToString(cx, v);
+        JSB_PRECONDITION3(tmp, cx, false, "Error processing arguments");
+
+        JSStringWrapper str(tmp);
+        *ret = str.get();
+        return true;
+    }
+
+    return false;
 }
 
 bool jsval_to_ccpoint(JSContext *cx, JS::HandleValue v, Point* ret) {
@@ -1476,6 +1483,35 @@ bool jsval_to_vector3(JSContext *cx, JS::HandleValue vp, cocos2d::Vec3* ret)
     return true;
 }
 
+bool jsval_to_vector4(JSContext *cx, JS::HandleValue vp, cocos2d::Vec4* ret)
+{
+    JS::RootedObject tmp(cx);
+    JS::RootedValue jsx(cx);
+    JS::RootedValue jsy(cx);
+    JS::RootedValue jsz(cx);
+    JS::RootedValue jsw(cx);
+    double x, y, z, w;
+    bool ok = vp.isObject() &&
+    JS_ValueToObject(cx, vp, &tmp) &&
+    JS_GetProperty(cx, tmp, "x", &jsx) &&
+    JS_GetProperty(cx, tmp, "y", &jsy) &&
+    JS_GetProperty(cx, tmp, "z", &jsz) &&
+    JS_GetProperty(cx, tmp, "w", &jsw) &&
+    JS::ToNumber(cx, jsx, &x) &&
+    JS::ToNumber(cx, jsy, &y) &&
+    JS::ToNumber(cx, jsz, &z) &&
+    JS::ToNumber(cx, jsw, &w) &&
+    !isnan(x) && !isnan(y) && !isnan(z) && !isnan(w);
+    
+    JSB_PRECONDITION3(ok, cx, false, "Error processing arguments");
+    
+    ret->x = (float)x;
+    ret->y = (float)y;
+    ret->z = (float)z;
+    ret->w = (float)w;
+    return true;
+}
+
 bool jsval_to_blendfunc(JSContext *cx, JS::HandleValue vp, cocos2d::BlendFunc* ret)
 {
     JS::RootedObject tmp(cx);
@@ -1770,7 +1806,8 @@ jsval c_string_to_jsval(JSContext* cx, const char* v, size_t length /* = -1 */)
     jsval ret = JSVAL_NULL;
 
     //XXX: JS_NewUCStringCopyN can't be resolved on Win32
-/*    int utf16_size = 0;
+#if(CC_TARGET_PLATFORM != CC_PLATFORM_WIN32)
+    int utf16_size = 0;
     jschar* strUTF16 = (jschar*)cc_utf8_to_utf16(v, (int)length, &utf16_size);
     
     if (strUTF16 && utf16_size > 0) {
@@ -1780,12 +1817,13 @@ jsval c_string_to_jsval(JSContext* cx, const char* v, size_t length /* = -1 */)
         }
         delete[] strUTF16;
     }
-*/
+#else
     JSString* str = JS_NewStringCopyN(cx, v, length);
     if(str)
     {
         ret = STRING_TO_JSVAL(str);
     }
+#endif
     return ret;
 }
 
@@ -1924,6 +1962,20 @@ jsval quaternion_to_jsval(JSContext* cx, const cocos2d::Quaternion& q)
         JS_DefineProperty(cx, tmp, "y", q.y, JSPROP_ENUMERATE | JSPROP_PERMANENT) &&
         JS_DefineProperty(cx, tmp, "z", q.z, JSPROP_ENUMERATE | JSPROP_PERMANENT) &&
         JS_DefineProperty(cx, tmp, "w", q.w, JSPROP_ENUMERATE | JSPROP_PERMANENT);
+    if(ok)
+        return OBJECT_TO_JSVAL(tmp);
+
+    return JSVAL_NULL;
+}
+
+jsval meshVertexAttrib_to_jsval(JSContext* cx, const cocos2d::MeshVertexAttrib& q)
+{
+    JS::RootedObject tmp(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+    if(!tmp) return JSVAL_NULL;
+    bool ok = JS_DefineProperty(cx, tmp, "size", q.size, JSPROP_ENUMERATE | JSPROP_PERMANENT) &&
+        JS_DefineProperty(cx, tmp, "type", q.type, JSPROP_ENUMERATE | JSPROP_PERMANENT) &&
+        JS_DefineProperty(cx, tmp, "vertexAttrib", q.vertexAttrib, JSPROP_ENUMERATE | JSPROP_PERMANENT) &&
+        JS_DefineProperty(cx, tmp, "attribSizeBytes", q.attribSizeBytes, JSPROP_ENUMERATE | JSPROP_PERMANENT);
     if(ok)
         return OBJECT_TO_JSVAL(tmp);
 

@@ -1671,50 +1671,6 @@ getSpeedScale : function (
 },
 
 /**
- * @method pause
- */
-pause : function (
-)
-{
-},
-
-/**
- * @method setSpeedScale
- * @param {float} arg0
- */
-setSpeedScale : function (
-float 
-)
-{
-},
-
-/**
- * @method init
- * @param {ccs.Armature} arg0
- * @return {bool}
- */
-init : function (
-armature 
-)
-{
-    return false;
-},
-
-/**
- * @method playWithIndexes
- * @param {Array} arg0
- * @param {int} arg1
- * @param {bool} arg2
- */
-playWithIndexes : function (
-array, 
-int, 
-bool 
-)
-{
-},
-
-/**
  * @method play
  * @param {String} arg0
  * @param {int} arg1
@@ -1739,26 +1695,34 @@ int
 },
 
 /**
- * @method resume
+ * @method playWithIndexes
+ * @param {Array} arg0
+ * @param {int} arg1
+ * @param {bool} arg2
  */
-resume : function (
+playWithIndexes : function (
+array, 
+int, 
+bool 
 )
 {
 },
 
 /**
- * @method stop
+ * @method setAnimationData
+ * @param {ccs.AnimationData} arg0
  */
-stop : function (
+setAnimationData : function (
+animationdata 
 )
 {
 },
 
 /**
- * @method update
+ * @method setSpeedScale
  * @param {float} arg0
  */
-update : function (
+setSpeedScale : function (
 float 
 )
 {
@@ -1775,40 +1739,6 @@ getAnimationData : function (
 },
 
 /**
- * @method playWithIndex
- * @param {int} arg0
- * @param {int} arg1
- * @param {int} arg2
- */
-playWithIndex : function (
-int, 
-int, 
-int 
-)
-{
-},
-
-/**
- * @method getCurrentMovementID
- * @return {String}
- */
-getCurrentMovementID : function (
-)
-{
-    return ;
-},
-
-/**
- * @method setAnimationData
- * @param {ccs.AnimationData} arg0
- */
-setAnimationData : function (
-animationdata 
-)
-{
-},
-
-/**
  * @method gotoAndPlay
  * @param {int} arg0
  */
@@ -1816,6 +1746,18 @@ gotoAndPlay : function (
 int 
 )
 {
+},
+
+/**
+ * @method init
+ * @param {ccs.Armature} arg0
+ * @return {bool}
+ */
+init : function (
+armature 
+)
+{
+    return false;
 },
 
 /**
@@ -1840,6 +1782,30 @@ getMovementCount : function (
 )
 {
     return 0;
+},
+
+/**
+ * @method playWithIndex
+ * @param {int} arg0
+ * @param {int} arg1
+ * @param {int} arg2
+ */
+playWithIndex : function (
+int, 
+int, 
+int 
+)
+{
+},
+
+/**
+ * @method getCurrentMovementID
+ * @return {String}
+ */
+getCurrentMovementID : function (
+)
+{
+    return ;
 },
 
 /**
@@ -3061,6 +3027,16 @@ clone : function (
 },
 
 /**
+ * @method setTweenType
+ * @param {cc.tweenfunc::TweenType} arg0
+ */
+setTweenType : function (
+tweentype 
+)
+{
+},
+
+/**
  * @method setNode
  * @param {cc.Node} arg0
  */
@@ -3088,6 +3064,16 @@ isEnterWhenPassed : function (
 )
 {
     return false;
+},
+
+/**
+ * @method getTweenType
+ * @return {cc.tweenfunc::TweenType}
+ */
+getTweenType : function (
+)
+{
+    return 0;
 },
 
 /**
@@ -3221,16 +3207,6 @@ getTextureName : function (
 )
 {
     return ;
-},
-
-/**
- * @method setNode
- * @param {cc.Node} arg0
- */
-setNode : function (
-node 
-)
-{
 },
 
 /**
@@ -3742,16 +3718,6 @@ InnerActionFrame : function (
 ccs.ColorFrame = {
 
 /**
- * @method getAlpha
- * @return {unsigned char}
- */
-getAlpha : function (
-)
-{
-    return 0;
-},
-
-/**
  * @method getColor
  * @return {color3b_object}
  */
@@ -3759,16 +3725,6 @@ getColor : function (
 )
 {
     return cc.Color3B;
-},
-
-/**
- * @method setAlpha
- * @param {unsigned char} arg0
- */
-setAlpha : function (
-char 
-)
-{
 },
 
 /**
@@ -3867,16 +3823,6 @@ str
  * @method init
  */
 init : function (
-)
-{
-},
-
-/**
- * @method setNode
- * @param {cc.Node} arg0
- */
-setNode : function (
-node 
 )
 {
 },
@@ -4460,6 +4406,82 @@ create : function (
  * @constructor
  */
 ActionTimeline : function (
+)
+{
+},
+
+};
+
+/**
+ * @class ObjectExtensionData
+ */
+ccs.ObjectExtensionData = {
+
+/**
+ * @method setActionTag
+ * @param {int} arg0
+ */
+setActionTag : function (
+int 
+)
+{
+},
+
+/**
+ * @method setCustomProperty
+ * @param {String} arg0
+ */
+setCustomProperty : function (
+str 
+)
+{
+},
+
+/**
+ * @method init
+ * @return {bool}
+ */
+init : function (
+)
+{
+    return false;
+},
+
+/**
+ * @method getCustomProperty
+ * @return {String}
+ */
+getCustomProperty : function (
+)
+{
+    return ;
+},
+
+/**
+ * @method getActionTag
+ * @return {int}
+ */
+getActionTag : function (
+)
+{
+    return 0;
+},
+
+/**
+ * @method create
+ * @return {ccs.ObjectExtensionData}
+ */
+create : function (
+)
+{
+    return ccs.ObjectExtensionData;
+},
+
+/**
+ * @method ObjectExtensionData
+ * @constructor
+ */
+ObjectExtensionData : function (
 )
 {
 },

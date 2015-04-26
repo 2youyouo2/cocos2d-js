@@ -8,6 +8,7 @@
 #include "jsb_cocos2dx_builder_auto.hpp"
 #include "jsb_cocos2dx_spine_auto.hpp"
 #include "jsb_cocos2dx_3d_auto.hpp"
+#include "jsb_cocos2dx_3d_extension_auto.hpp"
 #include "3d/jsb_cocos2dx_3d_manual.h"
 #include "extension/jsb_cocos2dx_extension_manual.h"
 #include "cocostudio/jsb_cocos2dx_studio_manual.h"
@@ -37,6 +38,10 @@
 #include "platform/ios/JavaScriptObjCBridge.h"
 #endif
 
+#if(CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
+#include "js_Effect3D_bindings.h"
+#endif
+
 USING_NS_CC;
 USING_NS_CC_EXT;
 using namespace CocosDenshion;
@@ -63,7 +68,7 @@ bool AppDelegate::applicationDidFinishLaunching()
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
     if(!glview) {
-#if(CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
+#if(CC_TARGET_PLATFORM == CC_PLATFORM_WP8 || CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
         glview = cocos2d::GLViewImpl::create("js-tests");
 #else
         glview = cocos2d::GLViewImpl::createWithRect("js-tests", Rect(0,0,900,640));
@@ -77,7 +82,6 @@ bool AppDelegate::applicationDidFinishLaunching()
     ScriptingCore* sc = ScriptingCore::getInstance();
     sc->addRegisterCallback(register_all_cocos2dx);
     sc->addRegisterCallback(register_cocos2dx_js_core);
-    sc->addRegisterCallback(register_cocos2dx_js_extensions);
     sc->addRegisterCallback(jsb_register_system);
     
     sc->addRegisterCallback(register_all_cocos2dx_extension);
@@ -104,6 +108,8 @@ bool AppDelegate::applicationDidFinishLaunching()
     sc->addRegisterCallback(register_all_cocos2dx_3d);
     sc->addRegisterCallback(register_all_cocos2dx_3d_manual);
     
+    sc->addRegisterCallback(register_all_cocos2dx_3d_extension);
+    
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS || CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     sc->addRegisterCallback(register_all_pluginx_protocols);
     sc->addRegisterCallback(register_pluginx_js_extensions);
@@ -116,6 +122,9 @@ bool AppDelegate::applicationDidFinishLaunching()
 #endif
 
     sc->addRegisterCallback(register_DrawNode3D_bindings);
+#if(CC_TARGET_PLATFORM != CC_PLATFORM_WP8)
+    sc->addRegisterCallback(register_Effect3D_bindings);
+#endif
 
     sc->start();
     sc->runScript("script/jsb_boot.js");

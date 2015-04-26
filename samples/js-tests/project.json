@@ -38,10 +38,12 @@
         "src/TransitionsTest/TransitionsTest.js",
         "src/DrawPrimitivesTest/DrawPrimitivesTest.js",
         "src/ParticleTest/ParticleTest.js",
+        "src/Particle3DTest/Particle3DTest.js",
         "src/ProgressActionsTest/ProgressActionsTest.js",
         "src/LayerTest/LayerTest.js",
         "src/SceneTest/SceneTest.js",
         "src/SpineTest/SpineTest.js",
+        "src/GafTest/GafTest.js",
         "src/SpriteTest/SpriteTest.js",
         "src/Sprite3DTest/Sprite3DTest.js",
         "src/LightTest/LightTest.js",
@@ -113,7 +115,6 @@
         "src/ExtensionsTest/S9SpriteTest/S9SpriteTest.js",
         "src/ExtensionsTest/NetworkTest/WebSocketTest.js",
         "src/ExtensionsTest/NetworkTest/SocketIOTest.js",
-        "src/ExtensionsTest/CocostudioActionTimelineTest/ActionTimelineTestScene.js",
         "src/ExtensionsTest/PluginXTest/PluginXTest.js",
         "src/ExtensionsTest/PluginXTest/PluginXTestsManager.js",
         "src/ExtensionsTest/PluginXTest/IOSIAPTest.js",
@@ -176,11 +177,13 @@
         "src/CocoStudioTest/SceneTest/SceneEditorTest.js",
         "src/CocoStudioTest/CocoStudioTest.js",
         "src/XHRTest/XHRTest.js",
+        "src/XHRTest/XHRArrayBufferTest.js",
 
         "src/Box2dTest/Box2dTest.js",
         "src/ChipmunkTest/ChipmunkTest.js",
 
         "src/Presentation/Presentation.js",
-        "src/ReflectionTest/ReflectionTest.js"
+        "src/ReflectionTest/ReflectionTest.js",
+        "src/TerrainTest/TerrainTest.js"
     ]
 }

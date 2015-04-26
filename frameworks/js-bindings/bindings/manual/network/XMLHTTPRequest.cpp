@@ -28,6 +28,7 @@
 
 #include "XMLHTTPRequest.h"
 #include <string>
+#include <algorithm>
 
 using namespace std;
 
@@ -60,6 +61,14 @@ void MinXmlHttpRequest::_gotHeader(string header)
         if (!http_value.empty() && http_value[http_value.size() - 1] == '\n') {
             http_value.erase(http_value.size() - 1);
         }
+
+        // Get rid of leading space (header is field: value format)
+        if (!http_value.empty() && http_value[0] == ' ') {
+            http_value.erase(0, 1);
+        }
+        
+        // Transform field name to lower case as they are case-insensitive
+        std::transform(http_field.begin(), http_field.end(), http_field.begin(), ::tolower);
         
         _httpHeader[http_field] = http_value;
         
@@ -163,7 +172,15 @@ void MinXmlHttpRequest::_setHttpRequestHeader()
     
 }
 
-
+void MinXmlHttpRequest::_setHttpRequestData(const char *data, size_t len)
+{
+    if (len > 0 &&
+        (_meth.compare("post") == 0 || _meth.compare("POST") == 0 ||
+         _meth.compare("put") == 0 || _meth.compare("PUT") == 0))
+    {
+        _httpRequest->setRequestData(data, len);
+    }
+}
 
 /**
  *  @brief Callback for HTTPRequest. Handles the response and invokes Callback.
@@ -711,20 +728,32 @@ JS_BINDED_FUNC_IMPL(MinXmlHttpRequest, send)
     if (argc == 1)
     {
         JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-        if (!args.get(0).isString())
+        if (args.get(0).isString())
+        {
+            JSStringWrapper strWrap(args.get(0).toString());
+            data = strWrap.get();
+            _setHttpRequestData(data.c_str(), static_cast<size_t>(data.length()));
+        }
+        else if (args.get(0).isObject())
+        {
+            JSObject *obj = args.get(0).toObjectOrNull();
+            if (JS_IsArrayBufferObject(obj))
+            {
+                _setHttpRequestData((const char *)JS_GetArrayBufferData(obj), JS_GetArrayBufferByteLength(obj));
+            }
+            else if (JS_IsArrayBufferViewObject(obj))
+            {
+                _setHttpRequestData((const char *)JS_GetArrayBufferViewData(obj), JS_GetArrayBufferViewByteLength(obj));
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
         {
             return false;
         }
-        JSStringWrapper strWrap(args.get(0).toString());
-        data = strWrap.get();
-    }
-
-
-    if (data.length() > 0 &&
-        (_meth.compare("post") == 0 || _meth.compare("POST") == 0 ||
-         _meth.compare("put") == 0 || _meth.compare("PUT") == 0))
-    {
-        _httpRequest->setRequestData(data.c_str(), static_cast<unsigned int>(data.length()));
     }
 
     _setHttpRequestHeader();
@@ -827,6 +856,7 @@ JS_BINDED_FUNC_IMPL(MinXmlHttpRequest, getResponseHeader)
     streamdata << data;
 
     string value = streamdata.str();
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
     
     auto iter = _httpHeader.find(value);
     if (iter != _httpHeader.end())

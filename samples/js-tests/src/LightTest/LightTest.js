@@ -143,8 +143,8 @@ var LightTest = LightTestDemo.extend({
         var s = cc.winSize;
         var camera = cc.Camera.createPerspective(60, s.width/s.height, 1, 1000);
         camera.setCameraFlag(cc.CameraFlag.USER1);
-        camera.setPosition3D(cc.vec3(0, 100, 100));
-        camera.lookAt(cc.vec3(0, 0, 0), cc.vec3(0, 1, 0));
+        camera.setPosition3D(cc.math.vec3(0, 100, 100));
+        camera.lookAt(cc.math.vec3(0, 0, 0), cc.math.vec3(0, 1, 0));
         this.addChild(camera);
 
         this._ambientLightLabel = new cc.LabelTTF("Ambient Light ON", "Arial", 15);
@@ -176,32 +176,32 @@ var LightTest = LightTestDemo.extend({
     addSprite:function(){
         var s = cc.winSize;
 
-        var orc = new cc.Sprite3D("Sprite3DTest/orc.c3b");
-        orc.setRotation3D(cc.vec3(0, 180, 0));
+        var orc = new jsb.Sprite3D("Sprite3DTest/orc.c3b");
+        orc.setRotation3D(cc.math.vec3(0, 180, 0));
         orc.setPosition(cc.p(0, 0));
         orc.setScale(2.0);
-        var axe = new cc.Sprite3D("Sprite3DTest/axe.c3b");
+        var axe = new jsb.Sprite3D("Sprite3DTest/axe.c3b");
         orc.getAttachNode("Bip001 R Hand").addChild(axe);
-        var animation = cc.Animation3D.create("Sprite3DTest/orc.c3b");
+        var animation = jsb.Animation3D.create("Sprite3DTest/orc.c3b");
         if(animation){
-            var animate = cc.Animate3D.create(animation);
+            var animate = jsb.Animate3D.create(animation);
             orc.runAction(cc.repeatForever(animate));
         }
         this.addChild(orc);
         orc.setCameraMask(2);
 
-        var sphere1 = new cc.Sprite3D("Sprite3DTest/sphere.c3b");
+        var sphere1 = new jsb.Sprite3D("Sprite3DTest/sphere.c3b");
         sphere1.setPosition(cc.p(30, 0));
         this.addChild(sphere1);
         sphere1.setCameraMask(2);
 
-        var sphere2 = new cc.Sprite3D("Sprite3DTest/sphere.c3b");
+        var sphere2 = new jsb.Sprite3D("Sprite3DTest/sphere.c3b");
         sphere2.setPosition(cc.p(-50, 0));
         sphere2.setScale(0.5);
         this.addChild(sphere2);
         sphere2.setCameraMask(2);
 
-        var sphere3 = new cc.Sprite3D("Sprite3DTest/sphere.c3b");
+        var sphere3 = new jsb.Sprite3D("Sprite3DTest/sphere.c3b");
         sphere3.setPosition(cc.p(-30, 0));
         sphere3.setScale(0.5);
         this.addChild(sphere3);
@@ -209,22 +209,22 @@ var LightTest = LightTestDemo.extend({
     },
 
     addLights:function(){
-        this._ambientLight = cc.AmbientLight.create(cc.color(200, 200, 200));
+        this._ambientLight = jsb.AmbientLight.create(cc.color(200, 200, 200));
         this._ambientLight.setEnabled(true);
         this.addChild(this._ambientLight);
         this._ambientLight.setCameraMask(2);
 
-        this._directionalLight = cc.DirectionLight.create(cc.vec3(-1, -1, 0), cc.color(200, 200, 200));
+        this._directionalLight = jsb.DirectionLight.create(cc.math.vec3(-1, -1, 0), cc.color(200, 200, 200));
         this._directionalLight.setEnabled(false);
         this.addChild(this._directionalLight);
         this._directionalLight.setCameraMask(2);
 
-        this._pointLight = cc.PointLight.create(cc.vec3(0, 0, 0), cc.color(200, 200, 200), 10000);
+        this._pointLight = jsb.PointLight.create(cc.math.vec3(0, 0, 0), cc.color(200, 200, 200), 10000);
         this._pointLight.setEnabled(false);
         this.addChild(this._pointLight);
         this._pointLight.setCameraMask(2);
 
-        this._spotLight = cc.SpotLight.create(cc.vec3(-1, -1, 0), cc.vec3(0, 0, 0), cc.color(200, 200, 200), 0, 0.5, 10000);
+        this._spotLight = jsb.SpotLight.create(cc.math.vec3(-1, -1, 0), cc.math.vec3(0, 0, 0), cc.color(200, 200, 200), 0, 0.5, 10000);
         this._spotLight.setEnabled(false);
         this.addChild(this._spotLight);
         this._spotLight.setCameraMask(2);
@@ -244,14 +244,14 @@ var LightTest = LightTestDemo.extend({
 
     update:function(dt){
         if(this._directionalLight)
-            this._directionalLight.setRotation3D(cc.vec3(-45, -cc.radiansToDegrees(this._angle), 0));
+            this._directionalLight.setRotation3D(cc.math.vec3(-45, -cc.radiansToDegrees(this._angle), 0));
 
         if(this._pointLight)
-            this._pointLight.setPosition3D(cc.vec3(100*Math.cos(this._angle+2*dt), 100, 100*Math.sin(this._angle+2*dt)));
+            this._pointLight.setPosition3D(cc.math.vec3(100*Math.cos(this._angle+2*dt), 100, 100*Math.sin(this._angle+2*dt)));
         
         if(this._spotLight){
-            this._spotLight.setPosition3D(cc.vec3(100*Math.cos(this._angle+4*dt), 100, 100*Math.sin(this._angle+4*dt)));
-            this._spotLight.setDirection(cc.vec3(-Math.cos(this._angle + 4 * dt), -1, -Math.sin(this._angle + 4*dt)));
+            this._spotLight.setPosition3D(cc.math.vec3(100*Math.cos(this._angle+4*dt), 100, 100*Math.sin(this._angle+4*dt)));
+            this._spotLight.setDirection(cc.math.vec3(-Math.cos(this._angle + 4 * dt), -1, -Math.sin(this._angle + 4*dt)));
         }
     },
 
