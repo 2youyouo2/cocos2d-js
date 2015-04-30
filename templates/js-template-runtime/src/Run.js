@@ -10,38 +10,34 @@
 })(function(require, exports, module) {
     "use strict";
 
-    var Component = cl.getModule("component/Component");
+    var Component  = cl.getModule("component/Component");
+    var KeyManager = cl.getModule("core/KeyManager");
 
     var Params = function() {
 
+        this.properties = ["speed"];
+
         this.speed = 2;
-        
-        this.s1 = 1;
-        this.s3 = -1;
-        
+
         this.ctor = function() {
-            this._super(this);
-            this.addProperties(["speed"]);
-        };
+            this._super();
+        }
 
         this.onEnter = function() {
             this.t = this.getComponent("TransformComponent");
         };
 
         this.onUpdate = function() {
-            this.t.position = cl.p(this.t.x+this.s3, this.t.y);
+            if(KeyManager.isKeyDown(cc.KEY.left)) {
+                this.t.x -= this.speed;
+            } else if (KeyManager.isKeyDown(cc.KEY.right)){
+                this.t.x += this.speed;
+            }
         };
-        
-        this.test = function() {
-            return 0;
-        }
-        
-        this.test8 = function() {
-            return 1;
-        }
     }
 
     var Run = Component.extendComponent("Run", new Params);
+
     
     exports.Constructor = Run;
     exports.Params = Params;
