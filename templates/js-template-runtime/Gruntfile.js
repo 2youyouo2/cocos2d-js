@@ -18,6 +18,7 @@ module.exports = function(grunt) {
 
                     data = data.replace(/(cl.getModule)\(["'](.*)(\.js)*["']\)/g, function($0, $1, $2){
                         var file = path.join(rd, $2);
+                        file = file.replace(/\\/g, '/');
                         return 'require("'+file+'.js")';
                     });
 
