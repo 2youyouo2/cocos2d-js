@@ -1,0 +1,40 @@
+{
+	"root": {
+		"res": [
+			"res/HelloWorld.png"
+		],
+		"children": [
+			{
+				"components": [
+					{
+						"class": "TransformComponent",
+						"position": {
+							"x": 480,
+							"y": 320
+						},
+						"scale": {
+							"x": 1,
+							"y": 1
+						},
+						"rotation": {
+							"x": 0,
+							"y": 0
+						}
+					},
+					{
+						"class": "SpriteComponent",
+						"sprite": "res/HelloWorld.png",
+						"anchorPoint": {
+							"x": 0.5,
+							"y": 0.5
+						}
+					},
+					{
+						"class": "Run",
+						"speed": 2
+					}
+				]
+			}
+		]
+	}
+}
