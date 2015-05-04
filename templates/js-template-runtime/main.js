@@ -66,6 +66,8 @@ cc.game.onStart = function() {
     // The game will be resized when browser size change
     cc.view.resizeWithBrowserSize(true);
     
+    cl.readConfig();
+    
     cl.SceneManager.loadScene("res/main.scene", function(s){
         cc.director.runScene(s);
     }, true);
