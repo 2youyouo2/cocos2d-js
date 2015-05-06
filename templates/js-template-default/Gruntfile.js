@@ -7,27 +7,36 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
 
     var dir = path.join(process.cwd(), "frameworks/cocos2d-html5/cocoslite/");
+
+    var webFiles = {dest:'bundle.js', src:['./frameworks/cocos2d-html5/cocoslite/**/*.js','./src/**/*.js', '!./src/**/Editor/**']};
+    var jsbFiles = {dest:'bundle.js', src:['./frameworks/cocos2d-html5/cocoslite/**/*.js', '!./frameworks/cocos2d-html5/cocoslite/object/**/*.js', './src/**/*.js', '!./src/**/Editor/**']};
+
+    var transform = function (file) {
+        var data = '';
+
+        function write (buf, enc, next) { data += buf;  next(); }
+        function end (next) {
+            var rd = path.relative(path.dirname(file), dir);
+
+            data = data.replace(/(cl.getModule)\(["'](.*)(\.js)*["']\)/g, function($0, $1, $2){
+                var file = path.join(rd, $2);
+                return 'require("'+file+'.js")';
+            });
+
+            this.push(data);
+            next(); 
+        }
+
+        return through(write, end);
+    }
+
     var options = {
+
+        watch: true,
+        keepAlive: true,
+
         browserifyOptions: {
-            transform: function (file) {
-                var data = '';
-
-                function write (buf, enc, next) { data += buf;  next(); }
-                function end (next) {
-                    var rd = path.relative(path.dirname(file), dir);
-
-                    data = data.replace(/(cl.getModule)\(["'](.*)(\.js)*["']\)/g, function($0, $1, $2){
-                        var file = path.join(rd, $2);
-                        file = file.replace(/\\/g, '/');
-                        return 'require("'+file+'.js")';
-                    });
-
-                    this.push(data);
-                    next(); 
-                }
-
-                return through(write, end);
-            }
+            transform: transform
         }
 
     };
@@ -39,19 +48,36 @@ module.exports = function(grunt) {
             options: options,
 
             web: {
-                files: [
-                    {dest:'bundle.js', src:['./frameworks/cocos2d-html5/cocoslite/**/*.js','./src/**/*.js', '!./src/**/Editor/**']}
-                ]
+                files: [webFiles]
             },
             jsb: {
-                files: [
-                    {dest:'bundle.js', src:['./frameworks/cocos2d-html5/cocoslite/**/*.js', '!./frameworks/cocos2d-html5/cocoslite/object/**/*.js', './src/**/*.js', '!./src/**/Editor/**']}
-                ]
-            }
+                files: [jsbFiles]
+            },
+
+            debug_web: {
+                files: [webFiles],
+                options: {
+                    browserifyOptions: {
+                        debug: true,
+                        transform: transform
+                    }
+                }
+            },
+            debug_jsb: {
+                files: [jsbFiles],
+                options: {
+                    browserifyOptions: {
+                        debug: true,
+                        transform: transform
+                    }
+                }
+            },
         }
     });
   
     // 默认被执行的任务列表。
-    grunt.registerTask('default', ['browserify:web']);
-    grunt.registerTask('jsb', ['browserify:jsb']);
+    grunt.registerTask('default',   ['browserify:web']);
+    grunt.registerTask('jsb',       ['browserify:jsb']);
+    grunt.registerTask('debug_web', ['browserify:debug_web']);
+    grunt.registerTask('debug_jsb', ['browserify:debug_jsb']);
 };
