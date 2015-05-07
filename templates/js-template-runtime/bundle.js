@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/cocoslite.js":[function(require,module,exports){
 cl = cl ? cl : {};
 
 
@@ -58,7 +58,7 @@ cl = cl ? cl : {};
 
 
 
-},{}],2:[function(require,module,exports){
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -80,7 +80,8 @@ cl = cl ? cl : {};
 
         this.addComponent = function(className){
             if(_target)
-                _target.addComponent(className);
+                return _target.addComponent(className);
+            return null;
         };
 
         this.getComponent = function(className){
@@ -155,98 +156,10 @@ cl = cl ? cl : {};
         },
         onEnter: function(target) {
 
-        },
-
-        toJSON: function(){
-            var json = {};
-            json.class = this.className;
-
-            for(var i=0; i<this.properties.length; i++){
-                var k = this.properties[i];
-
-                var value = this[k];
-
-                if(this["toJSON"+k]) {
-                    json[k] = this["toJSON"+k]();
-                }
-                else if(value !== null || value !== undefined){
-                    json[k] = value.toJSON ? value.toJSON() : value;
-                }
-            }
-            return json;
         }
     });
 
 
-    var _deserializeFuncs = [];
-
-    Component.fromJSON = function(parent, json) {
-        var c = parent.addComponent(json.class);
-        if(c == null) return null;
-        
-        for(var k in json) {
-            if(k == "class") continue;
-            
-            var value = json[k];
-
-            for(var i=0; i<_deserializeFuncs.length; i++) {
-                var ret;
-                try {
-                    ret = _deserializeFuncs[i](k, value);
-                }
-                catch(e) {
-                    console.log("SceneManager.tryReviver for [%s]failed : ", k, e);
-                }
-                
-                if(ret) {
-                    value = ret;
-                }
-            }
-
-            c[k] = value;
-        }
-
-        return c;
-    };
-
-    Component.registerDeserialize = function(func) {
-        _deserializeFuncs.push(func);
-    };
-
-
-    var stringParsers = [
-        {
-            re: /#?([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/,
-            parse: function(execResult) {
-                return cc.color(execResult[0]);
-            }
-        },
-        {
-            re: /cl.Enum.(\w*)+\.(\w*)+/,
-            parse: function(execResult) {
-                return cl.Enum[execResult[1]][execResult[2]];
-            }
-        }
-    ];
-
-    // register default deserialize
-    Component.registerDeserialize(function(key, value) {
-
-        var ret = null;
-
-        if(typeof value === 'string') {
-
-            stringParsers.forEach(function(parser) {
-                var match = parser.re.exec(value);
-
-                if(match) {
-                    ret = parser.parse(match);
-                }
-            });
-        }
-
-        return ret;
-    });
 
     Component.extendComponent = function(className, params, parent) {
         if(!parent) parent = Component;
@@ -289,7 +202,7 @@ cl = cl ? cl : {};
     module.exports = cl.Component = Component;
 });
 
-},{"./ComponentManager.js":3}],3:[function(require,module,exports){
+},{"./ComponentManager.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/ComponentManager.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/ComponentManager.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -333,7 +246,104 @@ cl = cl ? cl : {};
     module.exports = cl.ComponentManager = new ComponentManager;
 });
 
-},{}],4:[function(require,module,exports){
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/animation/Spine.js":[function(require,module,exports){
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+    
+    var Component    = require("../Component.js");
+
+    var Spine = Component.extendComponent("Spine", {
+        properties: ["file", "animation"],
+
+        ctor: function() {
+            this._super();
+
+            this._file      = ""; 
+            this._animation = "";
+            this._spine     = null;
+        },
+       
+        onBind: function(target) {
+            if(this._spine) {
+                target.addChild(this._spine);
+            }
+        },
+
+        setMix: function() {
+            if(this._spine) {
+                this._spine.setMix.apply(this._spine, arguments);
+            }
+        },
+
+        _updateSpine: function() {
+            if(this._spine) {
+                this._spine.removeFromParent();
+            }
+
+            var json  = this._file;
+            var atlas = this._file.replace('.json', '') + '.atlas';
+
+            this._spine = new sp.SkeletonAnimation(json, atlas);
+
+            if(this._spine) {
+                this.target.addChild(this._spine);
+                this._updateAnimation();
+            }
+        },
+
+        _updateAnimation: function() {
+            if(!this._spine) {
+                return;
+            }
+
+            if(this._animation) {
+                this._spine.setAnimation(0, this._animation, true);
+            }
+        },
+
+        _get_set_: {
+            file: {
+                get: function() {
+                    return this._file;
+                },
+                set: function(val) {
+                    if(this._file === val) {
+                        return;
+                    }
+
+                    this._file = val;
+                    this._updateSpine();
+                }
+            },
+
+            animation: {
+                get: function() {
+                    return this._animation;
+                },
+                set: function(val) {
+                    if(this._animation === val) {
+                        return;
+                    }
+
+                    this._animation = val;
+                    this._updateAnimation();
+                }
+            }
+        },
+
+        _folder_: "animation"
+    });
+
+    module.exports = Spine;
+});
+
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/ColorComponent.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -408,7 +418,7 @@ cl = cl ? cl : {};
     module.exports = ColorComponent;
 });
 
-},{"../Component.js":2}],5:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/MeshComponent.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -421,8 +431,10 @@ cl = cl ? cl : {};
     var Component = require("../Component.js");
 
     var MeshComponent = Component.extendComponent("MeshComponent", {
+        // properties: ["materials"],
+        // serialization: ["subMeshes", "vertices"],
+
         ctor: function () {
-            // this.properties = ["materials", "subMeshes", "vertices"];
             
             this._innerMesh = new cl.MeshSprite();
             this._innerMesh.retain();
@@ -435,9 +447,6 @@ cl = cl ? cl : {};
         },
         _setMaterials: function(materials) {
             this._innerMesh.materials = materials;
-        },
-        toJSONmaterrials: {
-
         },
 
         setSubMesh: function(index, indices) {
@@ -503,7 +512,7 @@ cl = cl ? cl : {};
 });
 
 
-},{"../Component.js":2}],6:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/SpriteComponent.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -579,7 +588,7 @@ cl = cl ? cl : {};
     module.exports = SpriteComponent;
 });
 
-},{"../Component.js":2}],7:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/TransformComponent.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -711,7 +720,7 @@ cl = cl ? cl : {};
     module.exports = TransformComponent;
 });
 
-},{"../Component.js":2}],8:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsBody.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -727,12 +736,12 @@ cl = cl ? cl : {};
         properties: ['static', 'mess', 'moment'],
 
         ctor: function() {
-            this._super();
-
             this._static = false;
             this._mess = 1;
             this._moment = 1000;
             this._duringUpdate = false;
+
+            this._super();
         },
 
         getBody: function() {
@@ -746,6 +755,9 @@ cl = cl ? cl : {};
                 this._body = new cp.Body(this._mess, this._moment );
                 cl.space.addBody( this._body );
             }
+
+            this.setVel = this._body.setVel.bind(this._body);
+            this.getVel = this._body.getVel.bind(this._body);
 
             var self = this;
 
@@ -829,7 +841,7 @@ cl = cl ? cl : {};
                 },
 
                 set: function(val) {
-                    this._mess = val;
+                    this._mess = val ? val : Infinity;
 
                     if(this._body && this._static) {
                         this._body.setMess(val);
@@ -843,7 +855,7 @@ cl = cl ? cl : {};
                 },
 
                 set: function(val) {
-                    this._moment = val;
+                    this._moment = val ? val : Infinity;
 
                     if(this._body && this._static) {
                         this._body.setMoment(val);
@@ -853,7 +865,7 @@ cl = cl ? cl : {};
         },
 
         _show_: function() {
-            return cl.config.physics === 'Chipmunk';
+            return cl.config.physics === 'chipmunk';
         },
         _folder_: "physics"
     });
@@ -861,7 +873,7 @@ cl = cl ? cl : {};
     module.exports = PhysicsBody;
 });
 
-},{"../Component.js":2}],9:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsBox.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -876,24 +888,37 @@ cl = cl ? cl : {};
 
 
     var PhysicsBox = Component.extendComponent("PhysicsBox", {
-        properties: PhysicsShape.prototype.properties.concat(['width', 'height']),
-
+        properties: PhysicsShape.prototype.properties.concat(['width', 'height', 'anchor']),
+        
         ctor: function() {
-            this._super();
 
-            this._width  = 50;
-            this._height = 50;
+            this.width  = 50;
+            this.height = 50;
+            this._anchor = cl.p(0.5, 0.5);
+            
+            this._super();
         },
 
         createVerts: function() {
-            var hw = this._width/2;
-            var hh = this._height/2;
+            var t = this.getComponent('TransformComponent');
+
+            var ax = this.anchor.x, ay = this.anchor.y;
+            var w  = this.width,    h  = this.height;
+            var sx = t.scaleX,      sy = t.scaleY;
+
+            var hw = this.width  * this.anchor.x * t.scaleX;
+            var hh = this.height * this.anchor.y * t.scaleY;
+
+            var l = -w * sx * ax;
+            var r =  w * sx * (1-ax);
+            var b = -h * sy * ay;
+            var t =  h * sy * (1-ay);
 
             var verts = [
-                -hw, -hh,
-                -hw,  hh,
-                 hw,  hh,
-                 hw, -hh
+                l, b,
+                l, t,
+                r, t,
+                r, b
             ];
 
             return verts;
@@ -904,21 +929,12 @@ cl = cl ? cl : {};
         },
 
         _get_set_: {
-            width: {
+            anchor: {
                 get: function() {
-                    return this._width;
+                    return this._anchor;
                 },
                 set: function(val) {
-                    this._width = val;
-                }
-            },
-
-            height: {
-                get: function() {
-                    return this._height;
-                },
-                set: function(val) {
-                    this._height = val;
+                    this._anchor = cl.p(val);
                 }
             }
         }
@@ -927,7 +943,90 @@ cl = cl ? cl : {};
     module.exports = PhysicsBox;
 });
 
-},{"../Component.js":2,"./PhysicsShape.js":11}],10:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","./PhysicsShape.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsShape.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsPoly.js":[function(require,module,exports){
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+    
+    var Component    = require("../Component.js");
+    var PhysicsShape = require("./PhysicsShape.js");
+    var Separator  = require("./Separator.js");
+
+
+
+
+    var PhysicsPoly = Component.extendComponent("PhysicsPoly", {
+        serialization: ['verts'],
+
+        ctor: function() {
+            this._verts = [cl.p(-25, -25), cl.p( -25, 25), cl.p(25, 25), cl.p(25, -25)];
+            this._super();
+        },
+
+        createShape: function() {
+            var verts = [];
+            var i, j;
+            var poly;
+
+            var shapes = [];
+
+            var ret = Separator.validate(verts);
+            if(ret === 0) {
+
+                var body   = this.getBody();
+
+                var scaleX = this.target.scaleX;
+                var scaleY = this.target.scaleY;
+
+                // reverse verts
+                var temp   = this._verts.reverse();
+                var polys  = Separator.calcShapes(temp);
+
+                for(i=0; i<polys.length; i++) {
+                    
+                    poly  = polys[i].reverse();
+                    verts = [];
+
+                    for(j=0; j<poly.length; j++) {
+                        verts.push( poly[j].x * scaleX );
+                        verts.push( poly[j].y * scaleY );
+                    }
+
+                    shapes.push(new cp.PolyShape(body, verts, cp.vzero));
+                }
+
+            } else {
+                console.log("Failed to create convex polygon : ", ret);
+            }
+
+            return shapes;
+        },
+
+        _get_set_: {
+            verts: {
+                get: function() {
+                    return this._verts;
+                },
+                set: function(verts) {
+                    this._verts.splice(0, this._verts.length);
+
+                    for(var i=0; i<verts.length; i++){
+                        this._verts.push(cl.p(verts[i]));
+                    }
+                }
+            }
+        }
+    }, PhysicsShape);
+
+    module.exports = PhysicsPoly;
+});
+
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","./PhysicsShape.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsShape.js","./Separator.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/Separator.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsSegment.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -979,7 +1078,7 @@ cl = cl ? cl : {};
     module.exports = PhysicsSegment;
 });
 
-},{"../Component.js":2,"./PhysicsShape.js":11}],11:[function(require,module,exports){
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","./PhysicsShape.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsShape.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsShape.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -997,7 +1096,7 @@ cl = cl ? cl : {};
         ctor: function() {
             this._super(['PhysicsBody']);
 
-            this._shape      = null;
+            this._shapes     = [];
             this._sensor     = false;
             this._elasticity = 0;
             this._friction   = 0;
@@ -1005,6 +1104,10 @@ cl = cl ? cl : {};
 
         getBody: function() {
             return this._physicsBody.getBody();
+        },
+
+        getShapes: function() {
+            return this._shapes;
         },
 
         createShape: function() {
@@ -1016,13 +1119,18 @@ cl = cl ? cl : {};
                 return;
             }
 
-            if(this._shape) {
-                cl.space.removeShape(this._shape);
-            }
+            this._shapes.forEach(function(shape) {
+                cl.space.removeShape(shape);
+            });
 
-            this._shape = this.createShape();
+            this._shapes = this.createShape();
+            if(!Array.isArray(this._shapes)) {
+                this._shapes = [this._shapes];
+            }
             
-            cl.space.addShape(this._shape);
+            this._shapes.forEach(function(shape) {
+                cl.space.addShape(shape);
+            });
         },
 
         onEnter: function(target) {
@@ -1039,10 +1147,9 @@ cl = cl ? cl : {};
                 set: function(val) {
                     this._sensor = val;
 
-                    if(!this._shape) {
-                        return;
-                    }
-                    this._shape.setSensor(val);
+                    this._shapes.forEach(function(shape) {
+                        shape.setSensor(val);
+                    });
                 }
             },
 
@@ -1053,9 +1160,9 @@ cl = cl ? cl : {};
                 set: function(val) {
                     this._elasticity = val;
 
-                    if(this._shape) {
-                        this._shape.setElasticity(val);
-                    }
+                    this._shapes.forEach(function(shape) {
+                        shape.setElasticity(val);
+                    });
                 }
             },
 
@@ -1066,15 +1173,15 @@ cl = cl ? cl : {};
                 set: function(val) {
                     this._friction = val;
 
-                    if(this._shape) {
-                        this._shape.setFriction(val);
-                    }
+                    this._shapes.forEach(function(shape) {
+                        shape.setFriction(val);
+                    });
                 }
             }
         },
 
         _show_: function() {
-            return cl.config.physics === 'Chipmunk';
+            return cl.config.physics === 'chipmunk';
         },
 
         _folder_: "physics",
@@ -1084,293 +1191,301 @@ cl = cl ? cl : {};
     module.exports = PhysicsShape;
 });
 
-},{"../Component.js":2}],12:[function(require,module,exports){
-/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
-/*global define, $ */
-
-/**
- * Implements a jQuery-like event dispatch pattern for non-DOM objects:
- *  - Listeners are attached via on()/one() & detached via off()
- *  - Listeners can use namespaces for easy removal
- *  - Listeners can attach to multiple events at once via a space-separated list
- *  - Events are fired via trigger()
- *  - The same listener can be attached twice, and will be called twice; but off() will detach all
- *    duplicate copies at once ('duplicate' means '===' equality - see http://jsfiddle.net/bf4p29g5/1/)
- * 
- * But it has some important differences from jQuery's non-DOM event mechanism:
- *  - More robust to listeners that throw exceptions (other listeners will still be called, and
- *    trigger() will still return control to its caller).
- *  - Events can be marked deprecated, causing on() to issue warnings
- *  - Easier to debug, since the dispatch code is much simpler
- *  - Faster, for the same reason
- *  - Uses less memory, since $(nonDOMObj).on() leaks memory in jQuery
- *  - API is simplified:
- *      - Event handlers do not have 'this' set to the event dispatcher object
- *      - Event object passed to handlers only has 'type' and 'target' fields
- *      - trigger() uses a simpler argument-list signature (like Promise APIs), rather than requiring
- *        an Array arg and ignoring additional args
- *      - trigger() does not support namespaces
- *      - For simplicity, on() does not accept a map of multiple events -> multiple handlers, nor a
- *        missing arg standing in for a bare 'return false' handler.
- * 
- * For now, Brackets uses a jQuery patch to ensure $(obj).on() and obj.on() (etc.) are identical
- * for any obj that has the EventDispatcher pattern. In the future, this may be deprecated.
- * 
- * To add EventDispatcher methods to any object, call EventDispatcher.makeEventDispatcher(obj).
- */
-(function (factory) {
-    if(typeof exports === 'object') {
+},{"../Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/Separator.js":[function(require,module,exports){
+(function(factory) {
+    if (typeof exports === 'object') {
         factory(require, module.exports, module);
-    } else if(typeof define === 'function') {
+    } else if (typeof define === 'function') {
         define(factory);
     }
 })(function(require, exports, module) {
     "use strict";
-    
-    
-    /**
-     * Split "event.namespace" string into its two parts; both parts are optional.
-     * @param {string} eventName Event name and/or trailing ".namespace"
-     * @return {!{event:string, ns:string}} Uses "" for missing parts.
-     */
-    function splitNs(eventStr) {
-        var dot = eventStr.indexOf(".");
-        if (dot === -1) {
-            return { eventName: eventStr };
-        } else {
-            return { eventName: eventStr.substring(0, dot), ns: eventStr.substring(dot) };
-        }
+
+    function b2Vec2(x, y) {
+        return {
+            x: x,
+            y: y
+        };
     }
-    
-    
-    // These functions are added as mixins to any object by makeEventDispatcher()
-    
+
     /**
-     * Adds the given handler function to 'events': a space-separated list of one or more event names, each
-     * with an optional ".namespace" (used by off() - see below). If the handler is already listening to this
-     * event, a duplicate copy is added.
-     * @param {string} events
-     * @param {!function(!{type:string, target:!Object}, ...)} fn
-     */
-    var on = function (events, fn) {
-        var eventsList = events.split(/\s+/).map(splitNs),
-            i;
-        
-        // Check for deprecation warnings
-        if (this._deprecatedEvents) {
-            for (i = 0; i < eventsList.length; i++) {
-                var deprecation = this._deprecatedEvents[eventsList[i].eventName];
-                if (deprecation) {
-                    var message = "Registering for deprecated event '" + eventsList[i].eventName + "'.";
-                    if (typeof deprecation === "string") {
-                        message += " Instead, use " + deprecation + ".";
+   * Checks whether the vertices in <code>verticesArray</code> can be properly distributed into the new fixtures (more specifically, it makes sure there are no overlapping segments and the vertices are in clockwise order). 
+   * It is recommended that you use this method for debugging only, because it may cost more CPU usage.
+   * <p/>
+   * @param verticesArray The vertices to be validated.
+   * @return An integer which can have the following values:
+   * <ul>
+   * <li>0 if the vertices can be properly processed.</li>
+   * <li>1 If there are overlapping lines.</li>
+   * <li>2 if the points are <b>not</b> in clockwise order.</li>
+   * <li>3 if there are overlapping lines <b>and</b> the points are <b>not</b> in clockwise order.</li>
+   * </ul> 
+   * */
+    var validate = function(verticesArray) {
+        var i, n = verticesArray.length,
+        j, j2, i2, i3, d, ret = 0;
+        var fl, fl2 = false;
+
+        for (i = 0; i < n; i++) {
+            i2 = (i < n - 1) ? i + 1 : 0;
+            i3 = (i > 0) ? i - 1 : n - 1;
+
+            fl = false;
+            for (j = 0; j < n; j++) {
+                if (((j != i) && j != i2)) {
+                    if (!fl) {
+                        d = det(verticesArray[i].x, verticesArray[i].y, verticesArray[i2].x, verticesArray[i2].y, verticesArray[j].x, verticesArray[j].y);
+                        if ((d > 0)) {
+                            fl = true;
+                        }
                     }
-                    console.warn(message, new Error().stack);
-                }
-            }
-        }
-        
-        // Attach listener for each event clause
-        for (i = 0; i < eventsList.length; i++) {
-            var eventName = eventsList[i].eventName;
-            if (!this._eventHandlers) {
-                this._eventHandlers = {};
-            }
-            if (!this._eventHandlers[eventName]) {
-                this._eventHandlers[eventName] = [];
-            }
-            eventsList[i].handler = fn;
-            this._eventHandlers[eventName].push(eventsList[i]);
-        }
-        
-        return this;  // for chaining
-    };
-    
-    /**
-     * Removes one or more handler functions based on the space-separated 'events' list. Each item in
-     * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
-     * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
-     * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were added).
-     * @param {string} events
-     * @param {?function(!{type:string, target:!Object}, ...)} fn
-     */
-    var off = function (events, fn) {
-        if (!this._eventHandlers) {
-            return this;
-        }
-        
-        var eventsList = events.split(/\s+/).map(splitNs),
-            i;
-        
-        var removeAllMatches = function (eventRec, eventName) {
-            var handlerList = this._eventHandlers[eventName],
-                k;
-            if (!handlerList) {
-                return;
-            }
-            
-            // Walk backwards so it's easy to remove items
-            for (k = handlerList.length - 1; k >= 0; k--) {
-                // Look at ns & fn only - doRemove() has already taken care of eventName
-                if (!eventRec.ns || eventRec.ns === handlerList[k].ns) {
-                    var handler = handlerList[k].handler;
-                    if (!fn || fn === handler || fn._eventOnceWrapper === handler) {
-                        handlerList.splice(k, 1);
+
+                    if ((j != i3)) {
+                        j2 = (j < n - 1) ? j + 1 : 0;
+                        if (hitSegment(verticesArray[i].x, verticesArray[i].y, verticesArray[i2].x, verticesArray[i2].y, verticesArray[j].x, verticesArray[j].y, verticesArray[j2].x, verticesArray[j2].y)) {
+                            ret = 1;
+                        }
                     }
                 }
             }
-            if (!handlerList.length) {
-                delete this._eventHandlers[eventName];
+
+            if (!fl) {
+                fl2 = true;
             }
-        }.bind(this);
-        
-        var doRemove = function (eventRec) {
-            if (eventRec.eventName) {
-                // If arg calls out an event name, look at that handler list only
-                removeAllMatches(eventRec, eventRec.eventName);
+        }
+
+        if (fl2) {
+            if ((ret == 1)) {
+                ret = 3;
             } else {
-                // If arg only gives a namespace, look at handler lists for all events
-                for(var eventname in this._eventHandlers) {
-                	removeAllMatches(eventRec, eventName);
+                ret = 2;
+            }
+
+        }
+        return ret;
+    }
+
+    function calcShapes(verticesArray) {
+        var vec;
+        var i, n, j;
+        var d, t, dx, dy, minLen;
+        var i1, i2, i3, p1, p2, p3;
+        var j1, j2, v1, v2, k, h;
+        var vec1, vec2;
+        var v, hitV;
+        var isConvex;
+        var figsVec = [],
+        queue = [];
+
+        queue.push(verticesArray);
+
+        while (queue.length) {
+            vec = queue[0];
+            n = vec.length;
+            isConvex = true;
+
+            for (i = 0; i < n; i++) {
+                i1 = i;
+                i2 = (i < n - 1) ? i + 1 : i + 1 - n;
+                i3 = (i < n - 2) ? i + 2 : i + 2 - n;
+
+                p1 = vec[i1];
+                p2 = vec[i2];
+                p3 = vec[i3];
+
+                d = det(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+                if ((d < 0)) {
+                    isConvex = false;
+                    minLen = Number.MAX_VALUE;
+
+                    for (j = 0; j < n; j++) {
+                        if (((j != i1) && j != i2)) {
+                            j1 = j;
+                            j2 = (j < n - 1) ? j + 1 : 0;
+
+                            v1 = vec[j1];
+                            v2 = vec[j2];
+
+                            v = hitRay(p1.x, p1.y, p2.x, p2.y, v1.x, v1.y, v2.x, v2.y);
+
+                            if (v) {
+                                dx = p2.x - v.x;
+                                dy = p2.y - v.y;
+                                t = dx * dx + dy * dy;
+
+                                if ((t < minLen)) {
+                                    h = j1;
+                                    k = j2;
+                                    hitV = v;
+                                    minLen = t;
+                                }
+                            }
+                        }
+                    }
+
+                    if ((minLen == Number.MAX_VALUE)) {
+                        err();
+                    }
+
+                    vec1 = new Array;
+                    vec2 = new Array;
+
+                    j1 = h;
+                    j2 = k;
+                    v1 = vec[j1];
+                    v2 = vec[j2];
+
+                    if (!pointsMatch(hitV.x, hitV.y, v2.x, v2.y)) {
+                        vec1.push(hitV);
+                    }
+                    if (!pointsMatch(hitV.x, hitV.y, v1.x, v1.y)) {
+                        vec2.push(hitV);
+                    }
+
+                    h = -1;
+                    k = i1;
+                    while (true) {
+                        if ((k != j2)) {
+                            vec1.push(vec[k]);
+                        } else {
+                            if (((h < 0) || h >= n)) {
+                                err();
+                            }
+                            if (!isOnSegment(v2.x, v2.y, vec[h].x, vec[h].y, p1.x, p1.y)) {
+                                vec1.push(vec[k]);
+                            }
+                            break;
+                        }
+
+                        h = k;
+                        if (((k - 1) < 0)) {
+                            k = n - 1;
+                        } else {
+                            k--;
+                        }
+                    }
+
+                    vec1 = vec1.reverse();
+
+                    h = -1;
+                    k = i2;
+                    while (true) {
+                        if ((k != j1)) {
+                            vec2.push(vec[k]);
+                        } else {
+                            if (((h < 0) || h >= n)) {
+                                err();
+                            }
+                            if (((k == j1) && !isOnSegment(v1.x, v1.y, vec[h].x, vec[h].y, p2.x, p2.y))) {
+                                vec2.push(vec[k]);
+                            }
+                            break;
+                        }
+
+                        h = k;
+                        if (((k + 1) > n - 1)) {
+                            k = 0;
+                        } else {
+                            k++;
+                        }
+                    }
+
+                    queue.push(vec1, vec2);
+                    queue.shift();
+
+                    break;
                 }
             }
-        }.bind(this);
-        
-        // Detach listener for each event clause
-        // Each clause may be: bare eventname, bare .namespace, full eventname.namespace
-        for (i = 0; i < eventsList.length; i++) {
-            doRemove(eventsList[i]);
-        }
-        
-        return this;  // for chaining
-    };
-    
-    /**
-     * Attaches a handler so it's only called once (per event in the 'events' list).
-     * @param {string} events
-     * @param {?function(!{type:string, target:!Object}, ...)} fn
-     */
-    var one = function (events, fn) {
-        // Wrap fn in a self-detaching handler; saved on the original fn so off() can detect it later
-        if (!fn._eventOnceWrapper) {
-            fn._eventOnceWrapper = function (event) {
-                // Note: this wrapper is reused for all attachments of the same fn, so it shouldn't reference
-                // anything from the outer closure other than 'fn'
-                event.target.off(event.type, fn._eventOnceWrapper);
-                fn.apply(this, arguments);
-            };
-        }
-        return this.on(events, fn._eventOnceWrapper);
-    };
-    
-    /**
-     * Invokes all handlers for the given event (in the order they were added).
-     * @param {string} eventName
-     * @param {*} ... Any additional args are passed to the event handler after the event object
-     */
-    var trigger = function (eventName) {
-        var event = { type: eventName, target: this },
-            handlerList = this._eventHandlers && this._eventHandlers[eventName],
-            i;
-        
-        if (!handlerList) {
-            return;
-        }
-        
-        // Use a clone of the list in case handlers call on()/off() while we're still in the loop
-        handlerList = handlerList.slice();
 
-        // Pass 'event' object followed by any additional args trigger() was given
-        var applyArgs = Array.prototype.slice.call(arguments, 1);
-        applyArgs.unshift(event);
-
-        for (i = 0; i < handlerList.length; i++) {
-            try {
-                // Call one handler
-                handlerList[i].handler.apply(null, applyArgs);
-            } catch (err) {
-                console.error("Exception in '" + eventName + "' listener on", this, String(err), err.stack);
-                console.assert();  // causes dev tools to pause, just like an uncaught exception
+            if (isConvex) {
+                figsVec.push(queue.shift());
             }
         }
-    };
-    
-    
-    /**
-     * Adds the EventDispatcher APIs to the given object: on(), one(), off(), and trigger(). May also be
-     * called on a prototype object - each instance will still behave independently.
-     * @param {!Object} obj Object to add event-dispatch methods to
-     */
-    function makeEventDispatcher(obj) {
-        $.extend(obj, {
-            on: on,
-            off: off,
-            one: one,
-            trigger: trigger,
-            _EventDispatcher: true
-        });
-        // Later, on() may add _eventHandlers: Object.<string, Array.<{event:string, namespace:?string,
-        //   handler:!function(!{type:string, target:!Object}, ...)}>> - map from eventName to an array
-        //   of handler records
-        // Later, markDeprecated() may add _deprecatedEvents: Object.<string, string|boolean> - map from
-        //   eventName to deprecation warning info
-    }
-    
-    /**
-     * Utility for calling on() with an array of arguments to pass to event handlers (rather than a varargs
-     * list). makeEventDispatcher() must have previously been called on 'dispatcher'.
-     * @param {!Object} dispatcher
-     * @param {string} eventName
-     * @param {!Array.<*>} argsArray
-     */
-    function triggerWithArray(dispatcher, eventName, argsArray) {
-        var triggerArgs = [eventName].concat(argsArray);
-        dispatcher.trigger.apply(dispatcher, triggerArgs);
-    }
-    
-    /**
-     * Utility for attaching an event handler to an object that has not YET had makeEventDispatcher() called
-     * on it, but will in the future. Once 'futureDispatcher' becomes a real event dispatcher, any handlers
-     * attached here will be retained.
-     * 
-     * Useful with core modules that have circular dependencies (one module initially gets an empty copy of the
-     * other, with no on() API present yet). Unlike other strategies like waiting for htmlReady(), this helper
-     * guarantees you won't miss any future events, regardless of how soon the other module finishes init and
-     * starts calling trigger().
-     * 
-     * @param {!Object} futureDispatcher
-     * @param {string} events
-     * @param {?function(!{type:string, target:!Object}, ...)} fn
-     */
-    function on_duringInit(futureDispatcher, events, fn) {
-        on.call(futureDispatcher, events, fn);
-    }
-    
-    /**
-     * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
-     * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
-     * is called separately per instance (i.e. in the constructor). Should be called before clients have
-     * a chance to start calling on().
-     * @param {!Object} obj Event dispatcher object
-     * @param {string} eventName Name of deprecated event
-     * @param {string=} insteadStr Suggested thing to use instead
-     */
-    function markDeprecated(obj, eventName, insteadStr) {
-        // Mark event as deprecated - on() will emit warnings when called with this event
-        if (!obj._deprecatedEvents) {
-            obj._deprecatedEvents = {};
-        }
-        obj._deprecatedEvents[eventName] = insteadStr || true;
-    }
-    
-    
-    exports.makeEventDispatcher = makeEventDispatcher;
-    exports.triggerWithArray    = triggerWithArray;
-    exports.on_duringInit       = on_duringInit;
-    exports.markDeprecated      = markDeprecated;
-});
 
-},{}],13:[function(require,module,exports){
+        return figsVec;
+    }
+
+    function hitRay(x1, y1, x2, y2, x3, y3, x4, y4) {
+        var t1 = x3 - x1,
+        t2 = y3 - y1,
+        t3 = x2 - x1,
+        t4 = y2 - y1,
+        t5 = x4 - x3,
+        t6 = y4 - y3,
+        t7 = t4 * t5 - t3 * t6,
+        a;
+
+        a = (((t5 * t2) - t6 * t1) / t7);
+        var px = x1 + a * t3,
+        py = y1 + a * t4;
+        var b1 = isOnSegment(x2, y2, x1, y1, px, py);
+        var b2 = isOnSegment(px, py, x3, y3, x4, y4);
+
+        if ((b1 && b2)) {
+            return new b2Vec2(px, py);
+        }
+
+        return null;
+    }
+
+    function hitSegment(x1, y1, x2, y2, x3, y3, x4, y4) {
+        var t1 = x3 - x1,
+        t2 = y3 - y1,
+        t3 = x2 - x1,
+        t4 = y2 - y1,
+        t5 = x4 - x3,
+        t6 = y4 - y3,
+        t7 = t4 * t5 - t3 * t6,
+        a;
+
+        a = (((t5 * t2) - t6 * t1) / t7);
+        var px = x1 + a * t3,
+        py = y1 + a * t4;
+        var b1 = isOnSegment(px, py, x1, y1, x2, y2);
+        var b2 = isOnSegment(px, py, x3, y3, x4, y4);
+
+        if ((b1 && b2)) {
+            return new b2Vec2(px, py);
+        }
+
+        return null;
+    }
+
+    function isOnSegment(px, py, x1, y1, x2, y2) {
+        var b1 = ((((x1 + 0.1) >= px) && px >= x2 - 0.1) || (((x1 - 0.1) <= px) && px <= x2 + 0.1));
+        var b2 = ((((y1 + 0.1) >= py) && py >= y2 - 0.1) || (((y1 - 0.1) <= py) && py <= y2 + 0.1));
+        return ((b1 && b2) && isOnLine(px, py, x1, y1, x2, y2));
+    }
+
+    function pointsMatch(x1, y1, x2, y2) {
+        var dx = (x2 >= x1) ? x2 - x1: x1 - x2,
+        dy = (y2 >= y1) ? y2 - y1: y1 - y2;
+        return ((dx < 0.1) && dy < 0.1);
+    }
+
+    function isOnLine(px, py, x1, y1, x2, y2) {
+        if ((((x2 - x1) > 0.1) || x1 - x2 > 0.1)) {
+            var a = (y2 - y1) / (x2 - x1),
+            possibleY = a * (px - x1) + y1,
+            diff = (possibleY > py) ? possibleY - py: py - possibleY;
+            return (diff < 0.1);
+        }
+
+        return (((px - x1) < 0.1) || x1 - px < 0.1);
+    }
+
+    function det(x1, y1, x2, y2, x3, y3) {
+        return x1 * y2 + x2 * y3 + x3 * y1 - y1 * x2 - y2 * x3 - y3 * x1;
+    }
+
+    function err() {
+        throw new Error("A problem has occurred. Use the Validate() method to see where the problem is.");
+    }
+
+    exports.calcShapes = calcShapes;
+    exports.validate = validate;
+});
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/GameObject.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -1493,7 +1608,7 @@ cl = cl ? cl : {};
             for(var key in this._components){
                 var c = this._components[key];
                 if(c.onUpdate) {
-                    c.onUpdate(this);
+                    c.onUpdate(dt);
                 }
             }
         },
@@ -1508,143 +1623,18 @@ cl = cl ? cl : {};
             return false;
         },
 
-        toJSON: function(){
-            var json = {};
-
-            var components = json.components = [];
-
-            var cs = this.components;
-            for(var i=0; i<cs.length; i++) {
-                components.push(cs[i].toJSON());
-            }
-
-            for(var k=0; k<this.children.length; k++){
-                var child = this.children[k];
-                if(child.constructor === cl.GameObject){
-                    
-                    if(!json.children) {
-                        json.children = [];
-                    }
-
-                    var cj = child.toJSON();
-                    json.children.push(cj);
-                }
-            }
-
-            var self = this;
-            this.properties.forEach(function(p) {
-                json[p] = self[p];
-            });
-
-            return json;
-        },
-
         clone: function() {
             var json = this.toJSON();
             return GameObject.fromJSON(json);
         }
     });
 
-    GameObject.fromJSON = function(json) {
-        var o = new GameObject();
-
-        o.properties.forEach(function(p) {
-            o[p] = json[p] === undefined ? o[p] : json[p];
-        });
-
-        for(var i=0; i<json.components.length; i++) {
-            Component.fromJSON(o, json.components[i]);
-        }
-
-        if(json.children) {
-            for(var i=0; i<json.children.length; i++){
-                GameObject.fromJSON(o, json.children[i]);
-            }
-        }
-
-        return o;
-    };
-
     cl.defineGetterSetter(GameObject.prototype, "components", "_getComponents");
 
     module.exports = cl.GameObject = GameObject;
 });
 
-},{"../component/Component.js":2}],14:[function(require,module,exports){
-(function (factory) {
-    if(typeof exports === 'object') {
-        factory(require, module.exports, module);
-    } else if(typeof define === 'function') {
-        define(factory);
-    }
-})(function(require, exports, module) {
-    "use strict";
-
-    var KeyManager = function(element) {
-
-        var _map = {};
-
-        this.isKeyDown = function(key) {
-            return _map[key];
-        };
-        
-        this.matchKeyDown = function(keys) {
-            keys = keys.length ? keys : [keys];
-
-            if(Object.keys(_map).length !== keys.length) {
-                return false;
-            }
-
-            var match = true;
-
-            for(var i in keys) {
-                if(!_map[keys[i]]) {
-                    match = false;
-                    break;
-                }
-            }
-
-            return match;
-        };
-
-        this.onKeyPressed = function(key) {
-            _map[key] = true;
-        }
-
-        this.onKeyReleased = function(key) {
-            delete _map[key];
-        }
-
-        // for web application
-        if(element) {
-            var self = this;
-
-            element.addEventListener('keydown', function(e) {
-                self.onKeyPressed(e.which);
-            });
-
-            element.addEventListener('keyup', function(e) {
-                self.onKeyReleased(e.which);
-            });
-        }
-    }
-    
-    cl.keyManager = new KeyManager;
-    cl.KeyManager = KeyManager;
-
-    cc.eventManager.addListener(cc.EventListener.create({
-
-        event: cc.EventListener.KEYBOARD,
-
-        onKeyPressed : cl.keyManager.onKeyPressed,
-        onKeyReleased: cl.keyManager.onKeyReleased
-
-    }), 10000);
-
-    module.exports = cl.keyManager;
-});
-
-},{}],15:[function(require,module,exports){
+},{"../component/Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/SceneManager.js":[function(require,module,exports){
 (function (factory) {
     if(typeof exports === 'object') {
         factory(require, module.exports, module);
@@ -1709,7 +1699,7 @@ cl = cl ? cl : {};
         var space = cl.space ;
 
         // Gravity
-        space.gravity = cp.v(0, -100);
+        space.gravity = cp.v(0, -700);
 
 
         var debugNode = new cc.PhysicsDebugNode( space );
@@ -1719,13 +1709,9 @@ cl = cl ? cl : {};
         if(scene.canvas) {
             parent = scene.canvas;
         }
-        parent.addChild( debugNode );
+        parent.addChild( debugNode, 10000 );
 
-        scene.scheduleUpdate();
-        scene.update = function( delta ) {
-            cl.space.step( delta );
-        }
-
+        scene.addUpdateFunc(cl.space.step.bind(cl.space));
     }
 
     SceneManager.parseData = function(json, cb){
@@ -1735,6 +1721,7 @@ cl = cl ? cl : {};
         cc.LoaderScene.preload(data.res, function () {
 
             var scene = new cc.Scene();
+            self.initScene(scene);
 
             scene.res = data.res;
 
@@ -1743,7 +1730,7 @@ cl = cl ? cl : {};
                 parent = cl.createCanvas(scene, data.canvas);
             }
 
-            if(cl.config.physics !== 'None') {
+            if(cl.config.physics !== 'none') {
                 self.initPhysics(scene, data.physics);
             }
 
@@ -1759,16 +1746,302 @@ cl = cl ? cl : {};
         }, this);
     };
 
+    SceneManager.initScene = function(scene) {
+
+        var updateList = [];
+
+        scene.update = function(dt) {
+            for(var i=0; i<updateList.length; i++) {
+                updateList[i](dt);
+            }
+        }
+
+        scene.addUpdateFunc = function(func) {
+            updateList.push(func);
+        }
+
+        scene.scheduleUpdate();
+    }
+
     module.exports = cl.SceneManager = SceneManager;
 });
 
-},{"./GameObject.js":13}],16:[function(require,module,exports){
+},{"./GameObject.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/GameObject.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/object/MeshSprite.js":[function(require,module,exports){
+var TextureArray = function(){
+    var array = [];
+    array._push = array.push;
+    array.push = function(file){
+        if(file){
+            if(cc.isString(file)){
+                var item = cc.textureCache.addImage(file);
+                item.file = file;
+                this._push(item);    
+            }
+            else{
+                this._push(file);
+            }
+        }
+    }
+
+    array.set = function(index, file){
+        if(file){
+            if(cc.isString(file)){
+                var item = cc.textureCache.addImage(file);
+                item.file = file;
+                this[index] = item;    
+            }
+            else{
+                this[index] = file;
+            }
+        }
+    }
+
+    return array;
+}
+
+cl.MeshSprite = cc.Node.extend({
+    _bufferCapacity: 0,
+    _buffer: null,
+
+    //0: vertex  1: indices
+    _buffersVBO: null,
+
+    _trianglesArrayBuffer: null,
+    _trianglesWebBuffer: null,
+    _trianglesReader: null,
+
+    _blendFunc: null,
+    _dirty: false,
+
+    _materials: null,
+
+    _subMeshes: null,
+
+    _className: "MeshSprite",
+
+    ctor: function(){
+        cc.Node.prototype.ctor.call(this);
+        
+        this._buffer       = [];
+        this._materials    = TextureArray();
+        this._subMeshes    = [];
+        this._buffersVBO   = [];
+
+        var locCmd         = this._renderCmd;
+        this._blendFunc    = new cc.BlendFunc(cc.BLEND_SRC, cc.BLEND_DST);
+
+        this.shaderProgram = cc.shaderCache.programForKey(cc.SHADER_POSITION_TEXTURECOLOR);
+    },
+
+    setSubMesh: function(index, indices){
+        this._subMeshes[index] = new Uint16Array(indices);
+    },
+
+    _getSubMeshes: function(){
+        return this._subMeshes;
+    },
+
+    _setVertices: function(vertices){
+        var VertexLength = cc.V3F_C4B_T2F.BYTES_PER_ELEMENT;
+
+        this._buffer.splice(0, this._buffer.length);
+
+        this._trianglesArrayBuffer = new ArrayBuffer(VertexLength * vertices.length);
+        this._trianglesReader = new Uint8Array(this._trianglesArrayBuffer);
+
+        for(var i=0; i<vertices.length; i++){
+            var v = vertices[i];
+            var nv = new cc.V3F_C4B_T2F(v._vertices, v._colors, v._texCoords, this._trianglesArrayBuffer, i*VertexLength);
+            this._buffer.push(nv);
+        }
+    },
+    _getVertices: function(){
+        return this._buffer;
+    },
+
+    _getMaterials: function(){
+        return this._materials;
+    },
+    _setMaterials: function(materials){
+        this._materials.splice(0, this._materials.length);
+        
+        for(var i in materials){
+            this._materials.push(materials[i]);
+        }
+    },
+
+    rebindVertices: function() {
+        this._setupVBO();
+        this._dirty = true;
+    },
+
+    _setupVBO: function () {
+        var gl = cc._renderContext;
+        //create WebGLBuffer
+        this._buffersVBO[0] = gl.createBuffer();
+        // this._buffersVBO[1] = gl.createBuffer();
+        this._buffersVBO[1] = [];
+        for(var i=0; i<this._subMeshes.length; i++){
+            this._buffersVBO[1][i] = gl.createBuffer();
+        }
+
+        this._trianglesWebBuffer = gl.createBuffer();
+        this._mapBuffers();
+    },
+
+    _mapBuffers: function () {
+        var gl = cc._renderContext;
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._trianglesWebBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, this._trianglesArrayBuffer, gl.DYNAMIC_DRAW);
+
+        for(var i=0; i<this._subMeshes.length; i++){
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffersVBO[1][i]);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._subMeshes[i], gl.STATIC_DRAW);
+        }
+        // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffersVBO[1]);
+        // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indices, gl.STATIC_DRAW);
+    },
+
+    // getBlendFunc: function () {
+ //        return this._blendFunc;
+ //    },
+
+ //    setBlendFunc: function (blendFunc, dst) {
+ //        if (dst === undefined) {
+ //            this._blendFunc.src = blendFunc.src;
+ //            this._blendFunc.dst = blendFunc.dst;
+ //        } else {
+ //            this._blendFunc.src = blendFunc;
+ //            this._blendFunc.dst = dst;
+ //        }
+ //    },
+
+    // setTexture: function (texture) {
+    //     var _t = this;
+    //     if(texture && (cc.isString(texture))){
+    //         texture = cc.textureCache.addImage(texture);
+    //         _t.setTexture(texture);
+    //         //TODO
+    //         // var size = texture.getContentSize();
+    //         // _t.setTextureRect(cc.rect(0,0, size.width, size.height));
+    //         //If image isn't loaded. Listen for the load event.
+    //         // if(!texture._isLoaded){
+    //         //     texture.addEventListener("load", function(){
+    //         //         var size = texture.getContentSize();
+    //         //         _t.setTextureRect(cc.rect(0,0, size.width, size.height));
+    //         //     }, this);
+    //         // }
+    //         return;
+    //     }
+    //     // CCSprite: setTexture doesn't work when the sprite is rendered using a CCSpriteSheet
+    //     cc.assert(!texture || texture instanceof cc.Texture2D, cc._LogInfos.Sprite_setTexture_2);
+
+    //     this._texture = texture;
+    //     if (!this._texture.hasPremultipliedAlpha()) {
+    //         this._blendFunc.src = cc.SRC_ALPHA;
+    //         this._blendFunc.dst = cc.ONE_MINUS_SRC_ALPHA;
+    //     } else {
+    //         this._blendFunc.src = cc.BLEND_SRC;
+    //         this._blendFunc.dst = cc.BLEND_DST;
+    //     }
+    // },
+
+    // getTexture: function () {
+    //     return this._texture;
+    // },
+
+    _render: function () {
+        if((this._buffer==null) || (this._buffer.length === 0)) 
+            return;
+
+        var gl = cc._renderContext;
+        
+        gl.enable( gl.DEPTH_TEST );
+        gl.depthFunc( gl.LEQUAL );
+
+        cc.glEnableVertexAttribs(cc.VERTEX_ATTRIB_FLAG_POS_COLOR_TEX);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._trianglesWebBuffer);
+
+        if (this._dirty) {
+            gl.bufferData(gl.ARRAY_BUFFER, this._trianglesArrayBuffer, gl.STREAM_DRAW);
+            this._dirty = false;
+        }
+
+        for(var i=0; i<this._materials.length; i++){
+            var indices = this._subMeshes[i];
+            if(!indices || indices.length == 0)
+                continue;
+
+            var material = this._materials[i];
+            cc.glBindTexture2DN(0, material);  
+
+            var triangleSize = cc.V3F_C4B_T2F.BYTES_PER_ELEMENT;
+
+            // vertex
+            gl.vertexAttribPointer(cc.VERTEX_ATTRIB_POSITION, 3, gl.FLOAT, false, triangleSize, 0);
+            // color
+            gl.vertexAttribPointer(cc.VERTEX_ATTRIB_COLOR, 4, gl.UNSIGNED_BYTE, true, triangleSize, 12);
+            // texcood
+            gl.vertexAttribPointer(cc.VERTEX_ATTRIB_TEX_COORDS, 2, gl.FLOAT, false, triangleSize, 16);
+
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._buffersVBO[1][i]);
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+        }
+        
+        gl.disable( gl.DEPTH_TEST );
+
+        cc.incrementGLDraws(1);
+        cc.checkGLErrorDebug();
+    },
+
+    clear:function () {
+        this._buffer.length = 0;
+        this._dirty = true;
+    },
+
+    _createRenderCmd: function () {
+        return new cl.MeshSprite.WebGLRenderCmd(this);
+    }
+});    
+
+var _p = cl.MeshSprite.prototype;
+cl.defineGetterSetter(_p, "vertices", "_getVertices", "_setVertices");
+cl.defineGetterSetter(_p, "materials", "_getMaterials");
+cl.defineGetterSetter(_p, "subMeshes", "_getSubMeshes");
+// cl.defineGetterSetter(_p, "texture", "getTexture", "setTexture");
+
+cl.MeshSprite.create = function () {
+    return new cl.MeshSprite();
+};
+
+
+// MeshSprite WebGLRenderCmd
+(function(){
+    cl.MeshSprite.WebGLRenderCmd = function (renderableObject) {
+        cc.Node.WebGLRenderCmd.call(this, renderableObject);
+        this._needDraw = true;
+    };
+
+    cl.MeshSprite.WebGLRenderCmd.prototype = Object.create(cc.Node.WebGLRenderCmd.prototype);
+    cl.MeshSprite.WebGLRenderCmd.prototype.constructor = cl.MeshSprite.WebGLRenderCmd;
+
+    cl.MeshSprite.WebGLRenderCmd.prototype.rendering = function (ctx) {
+        var node = this._node;
+        cc.glBlendFunc(node._blendFunc.src, node._blendFunc.dst);
+        this._shaderProgram.use();
+        this._shaderProgram._setUniformForMVPMatrixWithMat4(this._stackMatrix);
+        node._render();
+    };
+})();
+
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/shortcode.js":[function(require,module,exports){
 cl.EnumValue = function(Enum, key, value) {
     this.Enum = Enum;
     this.value = value;
     
-    this.toString = function() {
-        return 'cl.Enum' + Enum.name + '.' + key;
+    this.toJSON = this.toString = function() {
+        return 'cl.Enum.' + Enum.name + '.' + key;
     }
 }
 
@@ -1951,7 +2224,669 @@ Math.clamp = function(value, min, max)
     return value;
 }
 
-},{}],17:[function(require,module,exports){
+Array.prototype.reverse = function() {
+    var temp = [];
+    
+    for(var i=0; i<this.length; i++) {
+        temp.unshift(this[i]);
+    }
+
+    return temp;
+}
+
+Number.prototype.toFixed = function(pos) {
+    return Math.round( this * Math.pow(10, pos) ) / Math.pow(10, pos);
+}
+
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/EventDispatcher.js":[function(require,module,exports){
+/*jslint vars: true, plusplus: true, devel: true, nomen: true, indent: 4, maxerr: 50 */
+/*global define, $ */
+
+/**
+ * Implements a jQuery-like event dispatch pattern for non-DOM objects:
+ *  - Listeners are attached via on()/one() & detached via off()
+ *  - Listeners can use namespaces for easy removal
+ *  - Listeners can attach to multiple events at once via a space-separated list
+ *  - Events are fired via trigger()
+ *  - The same listener can be attached twice, and will be called twice; but off() will detach all
+ *    duplicate copies at once ('duplicate' means '===' equality - see http://jsfiddle.net/bf4p29g5/1/)
+ * 
+ * But it has some important differences from jQuery's non-DOM event mechanism:
+ *  - More robust to listeners that throw exceptions (other listeners will still be called, and
+ *    trigger() will still return control to its caller).
+ *  - Events can be marked deprecated, causing on() to issue warnings
+ *  - Easier to debug, since the dispatch code is much simpler
+ *  - Faster, for the same reason
+ *  - Uses less memory, since $(nonDOMObj).on() leaks memory in jQuery
+ *  - API is simplified:
+ *      - Event handlers do not have 'this' set to the event dispatcher object
+ *      - Event object passed to handlers only has 'type' and 'target' fields
+ *      - trigger() uses a simpler argument-list signature (like Promise APIs), rather than requiring
+ *        an Array arg and ignoring additional args
+ *      - trigger() does not support namespaces
+ *      - For simplicity, on() does not accept a map of multiple events -> multiple handlers, nor a
+ *        missing arg standing in for a bare 'return false' handler.
+ * 
+ * For now, Brackets uses a jQuery patch to ensure $(obj).on() and obj.on() (etc.) are identical
+ * for any obj that has the EventDispatcher pattern. In the future, this may be deprecated.
+ * 
+ * To add EventDispatcher methods to any object, call EventDispatcher.makeEventDispatcher(obj).
+ */
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+
+    function extend(target, ref) {
+        var name, value;
+        for ( name in ref ) {
+            value = ref[name];
+            if (value !== undefined) {
+                target[ name ] = value;
+            }
+        }
+        return target;
+    }
+    
+    
+    /**
+     * Split "event.namespace" string into its two parts; both parts are optional.
+     * @param {string} eventName Event name and/or trailing ".namespace"
+     * @return {!{event:string, ns:string}} Uses "" for missing parts.
+     */
+    function splitNs(eventStr) {
+        var dot = eventStr.indexOf(".");
+        if (dot === -1) {
+            return { eventName: eventStr };
+        } else {
+            return { eventName: eventStr.substring(0, dot), ns: eventStr.substring(dot) };
+        }
+    }
+    
+    
+    // These functions are added as mixins to any object by makeEventDispatcher()
+    
+    /**
+     * Adds the given handler function to 'events': a space-separated list of one or more event names, each
+     * with an optional ".namespace" (used by off() - see below). If the handler is already listening to this
+     * event, a duplicate copy is added.
+     * @param {string} events
+     * @param {!function(!{type:string, target:!Object}, ...)} fn
+     */
+    var on = function (events, fn) {
+        var eventsList = events.split(/\s+/).map(splitNs),
+            i;
+        
+        // Check for deprecation warnings
+        if (this._deprecatedEvents) {
+            for (i = 0; i < eventsList.length; i++) {
+                var deprecation = this._deprecatedEvents[eventsList[i].eventName];
+                if (deprecation) {
+                    var message = "Registering for deprecated event '" + eventsList[i].eventName + "'.";
+                    if (typeof deprecation === "string") {
+                        message += " Instead, use " + deprecation + ".";
+                    }
+                    console.warn(message, new Error().stack);
+                }
+            }
+        }
+        
+        // Attach listener for each event clause
+        for (i = 0; i < eventsList.length; i++) {
+            var eventName = eventsList[i].eventName;
+            if (!this._eventHandlers) {
+                this._eventHandlers = {};
+            }
+            if (!this._eventHandlers[eventName]) {
+                this._eventHandlers[eventName] = [];
+            }
+            eventsList[i].handler = fn;
+            this._eventHandlers[eventName].push(eventsList[i]);
+        }
+        
+        return this;  // for chaining
+    };
+    
+    /**
+     * Removes one or more handler functions based on the space-separated 'events' list. Each item in
+     * 'events' can be: bare event name, bare .namespace, or event.namespace pair. This yields a set of
+     * matching handlers. If 'fn' is ommitted, all these handlers are removed. If 'fn' is provided,
+     * only handlers exactly equal to 'fn' are removed (there may still be >1, if duplicates were added).
+     * @param {string} events
+     * @param {?function(!{type:string, target:!Object}, ...)} fn
+     */
+    var off = function (events, fn) {
+        if (!this._eventHandlers) {
+            return this;
+        }
+        
+        var eventsList = events.split(/\s+/).map(splitNs),
+            i;
+        
+        var removeAllMatches = function (eventRec, eventName) {
+            var handlerList = this._eventHandlers[eventName],
+                k;
+            if (!handlerList) {
+                return;
+            }
+            
+            // Walk backwards so it's easy to remove items
+            for (k = handlerList.length - 1; k >= 0; k--) {
+                // Look at ns & fn only - doRemove() has already taken care of eventName
+                if (!eventRec.ns || eventRec.ns === handlerList[k].ns) {
+                    var handler = handlerList[k].handler;
+                    if (!fn || fn === handler || fn._eventOnceWrapper === handler) {
+                        handlerList.splice(k, 1);
+                    }
+                }
+            }
+            if (!handlerList.length) {
+                delete this._eventHandlers[eventName];
+            }
+        }.bind(this);
+        
+        var doRemove = function (eventRec) {
+            if (eventRec.eventName) {
+                // If arg calls out an event name, look at that handler list only
+                removeAllMatches(eventRec, eventRec.eventName);
+            } else {
+                // If arg only gives a namespace, look at handler lists for all events
+                for(var eventname in this._eventHandlers) {
+                	removeAllMatches(eventRec, eventName);
+                }
+            }
+        }.bind(this);
+        
+        // Detach listener for each event clause
+        // Each clause may be: bare eventname, bare .namespace, full eventname.namespace
+        for (i = 0; i < eventsList.length; i++) {
+            doRemove(eventsList[i]);
+        }
+        
+        return this;  // for chaining
+    };
+    
+    /**
+     * Attaches a handler so it's only called once (per event in the 'events' list).
+     * @param {string} events
+     * @param {?function(!{type:string, target:!Object}, ...)} fn
+     */
+    var one = function (events, fn) {
+        // Wrap fn in a self-detaching handler; saved on the original fn so off() can detect it later
+        if (!fn._eventOnceWrapper) {
+            fn._eventOnceWrapper = function (event) {
+                // Note: this wrapper is reused for all attachments of the same fn, so it shouldn't reference
+                // anything from the outer closure other than 'fn'
+                event.target.off(event.type, fn._eventOnceWrapper);
+                fn.apply(this, arguments);
+            };
+        }
+        return this.on(events, fn._eventOnceWrapper);
+    };
+    
+    /**
+     * Invokes all handlers for the given event (in the order they were added).
+     * @param {string} eventName
+     * @param {*} ... Any additional args are passed to the event handler after the event object
+     */
+    var trigger = function (eventName) {
+        var event = { type: eventName, target: this },
+            handlerList = this._eventHandlers && this._eventHandlers[eventName],
+            i;
+        
+        if (!handlerList) {
+            return;
+        }
+        
+        // Use a clone of the list in case handlers call on()/off() while we're still in the loop
+        handlerList = handlerList.slice();
+
+        // Pass 'event' object followed by any additional args trigger() was given
+        var applyArgs = Array.prototype.slice.call(arguments, 1);
+        applyArgs.unshift(event);
+
+        for (i = 0; i < handlerList.length; i++) {
+            try {
+                // Call one handler
+                handlerList[i].handler.apply(null, applyArgs);
+            } catch (err) {
+                console.error("Exception in '" + eventName + "' listener on", this, String(err), err.stack);
+                console.assert();  // causes dev tools to pause, just like an uncaught exception
+            }
+        }
+    };
+    
+    
+    /**
+     * Adds the EventDispatcher APIs to the given object: on(), one(), off(), and trigger(). May also be
+     * called on a prototype object - each instance will still behave independently.
+     * @param {!Object} obj Object to add event-dispatch methods to
+     */
+    function makeEventDispatcher(obj) {
+        extend(obj, {
+            on: on,
+            off: off,
+            one: one,
+            trigger: trigger,
+            _EventDispatcher: true
+        });
+        // Later, on() may add _eventHandlers: Object.<string, Array.<{event:string, namespace:?string,
+        //   handler:!function(!{type:string, target:!Object}, ...)}>> - map from eventName to an array
+        //   of handler records
+        // Later, markDeprecated() may add _deprecatedEvents: Object.<string, string|boolean> - map from
+        //   eventName to deprecation warning info
+    }
+    
+    /**
+     * Utility for calling on() with an array of arguments to pass to event handlers (rather than a varargs
+     * list). makeEventDispatcher() must have previously been called on 'dispatcher'.
+     * @param {!Object} dispatcher
+     * @param {string} eventName
+     * @param {!Array.<*>} argsArray
+     */
+    function triggerWithArray(dispatcher, eventName, argsArray) {
+        var triggerArgs = [eventName].concat(argsArray);
+        dispatcher.trigger.apply(dispatcher, triggerArgs);
+    }
+    
+    /**
+     * Utility for attaching an event handler to an object that has not YET had makeEventDispatcher() called
+     * on it, but will in the future. Once 'futureDispatcher' becomes a real event dispatcher, any handlers
+     * attached here will be retained.
+     * 
+     * Useful with core modules that have circular dependencies (one module initially gets an empty copy of the
+     * other, with no on() API present yet). Unlike other strategies like waiting for htmlReady(), this helper
+     * guarantees you won't miss any future events, regardless of how soon the other module finishes init and
+     * starts calling trigger().
+     * 
+     * @param {!Object} futureDispatcher
+     * @param {string} events
+     * @param {?function(!{type:string, target:!Object}, ...)} fn
+     */
+    function on_duringInit(futureDispatcher, events, fn) {
+        on.call(futureDispatcher, events, fn);
+    }
+    
+    /**
+     * Mark a given event name as deprecated, such that on() will emit warnings when called with it.
+     * May be called before makeEventDispatcher(). May be called on a prototype where makeEventDispatcher()
+     * is called separately per instance (i.e. in the constructor). Should be called before clients have
+     * a chance to start calling on().
+     * @param {!Object} obj Event dispatcher object
+     * @param {string} eventName Name of deprecated event
+     * @param {string=} insteadStr Suggested thing to use instead
+     */
+    function markDeprecated(obj, eventName, insteadStr) {
+        // Mark event as deprecated - on() will emit warnings when called with this event
+        if (!obj._deprecatedEvents) {
+            obj._deprecatedEvents = {};
+        }
+        obj._deprecatedEvents[eventName] = insteadStr || true;
+    }
+    
+    
+    exports.makeEventDispatcher = makeEventDispatcher;
+    exports.triggerWithArray    = triggerWithArray;
+    exports.on_duringInit       = on_duringInit;
+    exports.markDeprecated      = markDeprecated;
+});
+
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/KeyManager.js":[function(require,module,exports){
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+
+    var Time = require('./Time.js');
+
+    var KeyManager = function(element) {
+
+        var _map = {};
+
+        this.isKeyDown = function(key, duration) {
+            var state = _map[key];
+            if(!state) {
+                return false;
+            }
+
+            if(duration !== undefined) {
+                return (Time.now - state.time) <= duration;
+            } else {
+                return state.pressed;
+            }
+        };
+
+        this.isKeyRelease = function(key) {
+            var state = _map[key];
+            return !state || !state.pressed;
+        };
+        
+        this.matchKeyDown = function(keys) {
+            keys = keys.length ? keys : [keys];
+
+            if(Object.keys(_map).length !== keys.length) {
+                return false;
+            }
+
+            var match = true;
+
+            for(var i in keys) {
+                var state = _map[keys[i]];
+                if(!state || !state.pressed) {
+                    match = false;
+                    break;
+                }
+            }
+
+            return match;
+        };
+
+        this.onKeyPressed = function(key) {
+            var state = _map[key];
+            if(state && state.pressed) {
+                return;
+            }
+
+            _map[key] = {
+                pressed: true,
+                time: Time.now
+            };
+        }
+
+        this.onKeyReleased = function(key) {
+            _map[key] = {
+                pressed: false,
+            };
+        }
+
+        // for web application
+        if(element) {
+            var self = this;
+
+            element.addEventListener('keydown', function(e) {
+                self.onKeyPressed(e.which);
+            });
+
+            element.addEventListener('keyup', function(e) {
+                self.onKeyReleased(e.which);
+            });
+        }
+    }
+    
+    cl.keyManager = new KeyManager;
+    cl.KeyManager = KeyManager;
+
+    cc.eventManager.addListener(cc.EventListener.create({
+
+        event: cc.EventListener.KEYBOARD,
+
+        onKeyPressed : cl.keyManager.onKeyPressed,
+        onKeyReleased: cl.keyManager.onKeyReleased
+
+    }), 10000);
+
+    module.exports = cl.keyManager;
+});
+
+},{"./Time.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/Time.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/Serialization.js":[function(require,module,exports){
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+
+    var Component  = require("../component/Component.js");
+    var GameObject = require("../core/GameObject.js");
+
+    var _deserializeFuncs = [];
+
+    // serialize function
+
+    cc.Sprite.prototype.toJSON  = function() {
+        var texture = this.getTexture();
+        return texture ? texture.url : "";
+    };
+
+    cc.Color.prototype.toJSON = function() {
+        return cc.colorToHex(this);
+    }
+
+    cc.Scene.prototype.toJSON = function() {
+        var json          = {};
+        json.root         = {};
+        json.root.res     = this.res;
+        json.root.physics = this.physics;
+
+        var childrenJson  = json.root.children = [];
+        var children      = this.children;
+
+        if(this.canvas) {
+            children                = this.canvas.children;
+            json.root.canvas        = {};
+            json.root.canvas.offset = this.canvas.offset;
+            json.root.canvas.scale  = this.canvas.scale;    
+        }
+
+        for(var k=0; k<children.length; k++) {
+            var child = children[k];
+
+            if(child.constructor === cl.GameObject) {
+                var cj = child.toJSON();
+                childrenJson.push(cj);
+            }
+        }
+
+        return json;
+    };
+
+    cl.Point.prototype.toJSON = function() {
+        return {
+            x : this.x.toFixed(3),
+            y : this.y.toFixed(3)
+        }
+    };
+
+    GameObject.prototype.toJSON = function(){
+        var json = {};
+
+        var components = json.components = [];
+
+        var cs = this.components;
+        for(var i=0; i<cs.length; i++) {
+            components.push(cs[i].toJSON());
+        }
+
+        for(var k=0; k<this.children.length; k++){
+            var child = this.children[k];
+            if(child.constructor === cl.GameObject){
+                
+                if(!json.children) {
+                    json.children = [];
+                }
+
+                var cj = child.toJSON();
+                json.children.push(cj);
+            }
+        }
+
+        var self = this;
+        this.properties.forEach(function(p) {
+            json[p] = self[p];
+        });
+
+        return json;
+    };
+
+    Component.prototype.toJSON = function() {
+        var json = {};
+        json.class = this.className;
+
+        var serialization = this.properties;
+        if(this.serialization) {
+            serialization = this.serialization.concat(this.properties);
+        }
+
+        for(var i=0; i<serialization.length; i++) {
+            var k = serialization[i];
+
+            var value = this[k];
+
+            if(this["toJSON"+k]) {
+                json[k] = this["toJSON"+k]();
+            }
+            else if(typeof value === 'number') {
+                json[k] = value.toFixed(3);
+            }
+            else if(value !== null && value !== undefined){
+                json[k] = value.toJSON ? value.toJSON() : value;
+            }
+        }
+        return json;
+    };
+
+
+    // deserialize function
+
+    var registerDeserialize = function(func) {
+        _deserializeFuncs.push(func);
+    };
+
+    var tryReviver = function(key, value) {
+        for(var i=0; i<_deserializeFuncs.length; i++) {
+            try {
+                var ret = _deserializeFuncs[i](key, value);
+
+                if(ret) {
+                    return ret;
+                }
+            }
+            catch(e) {
+                console.log("Component.tryReviver for [%s]failed : ", key, e);
+            }
+        }
+
+        return value;
+    }
+
+
+    var stringParsers = [
+        {
+            re: /#?([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/,
+            parse: function(execResult) {
+                return cc.color(execResult[0]);
+            }
+        },
+        {
+            re: /cl.Enum.(\w*)+\.(\w*)+/,
+            parse: function(execResult) {
+                return cl.Enum[execResult[1]][execResult[2]];
+            }
+        }
+    ];
+
+    // register default deserialize
+    registerDeserialize(function(key, value) {
+
+        var ret = null;
+
+        if(typeof value === 'string') {
+
+            stringParsers.forEach(function(parser) {
+                var match = parser.re.exec(value);
+
+                if(match) {
+                    ret = parser.parse(match);
+                }
+            });
+        }
+
+        return ret;
+    });
+
+
+    Component.fromJSON = function(object, json) {
+        var c = object.addComponent(json.class);
+        if(c == null) return null;
+        
+        for(var k in json) {
+            if(k == "class") continue;
+            
+            var value = json[k];
+
+            var ret = tryReviver(k, value);
+            if(ret) {
+                value = ret;
+            }
+
+            c[k] = value;
+        }
+
+        return c;
+    };
+
+    GameObject.fromJSON = function(json) {
+        var o = new GameObject();
+
+        o.properties.forEach(function(p) {
+            o[p] = json[p] === undefined ? o[p] : json[p];
+        });
+
+        for(var i=0; i<json.components.length; i++) {
+            Component.fromJSON(o, json.components[i]);
+        }
+
+        if(json.children) {
+            for(var i=0; i<json.children.length; i++){
+                GameObject.fromJSON(o, json.children[i]);
+            }
+        }
+
+        return o;
+    };
+
+    exports.registerDeserialize = registerDeserialize;
+    exports.tryReviver          = tryReviver;
+
+    cl.Serialization = exports;
+});
+},{"../component/Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","../core/GameObject.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/GameObject.js"}],"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/Time.js":[function(require,module,exports){
+(function (factory) {
+    if(typeof exports === 'object') {
+        factory(require, module.exports, module);
+    } else if(typeof define === 'function') {
+        define(factory);
+    }
+})(function(require, exports, module) {
+    "use strict";
+
+    var time = 0;
+
+    var Time = {
+        update: function(dt) {
+            time += 0.01;
+        }
+    }
+
+    cl.defineGetterSetter(Time, 'now', function() {
+        return time;
+    });
+
+    setInterval(Time.update, 10);
+
+    module.exports = Time;
+});
+},{}],"/Users/youyou/Desktop/CocosLiteProject5/src/Run.js":[function(require,module,exports){
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
 /*global cl, cc*/
 
@@ -1965,7 +2900,7 @@ Math.clamp = function(value, min, max)
     "use strict";
 
     var Component  = require("../frameworks/cocos2d-html5/cocoslite/component/Component.js");
-    var KeyManager = require("../frameworks/cocos2d-html5/cocoslite/core/KeyManager.js");
+    var KeyManager = require("../frameworks/cocos2d-html5/cocoslite/utils/KeyManager.js");
 
     var Params = function() {
 
@@ -1997,4 +2932,4 @@ Math.clamp = function(value, min, max)
     exports.Params = Params;
     
 });
-},{"../frameworks/cocos2d-html5/cocoslite/component/Component.js":2,"../frameworks/cocos2d-html5/cocoslite/core/KeyManager.js":14}]},{},[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]);
+},{"../frameworks/cocos2d-html5/cocoslite/component/Component.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","../frameworks/cocos2d-html5/cocoslite/utils/KeyManager.js":"/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/KeyManager.js"}]},{},["/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/cocoslite.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/Component.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/ComponentManager.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/animation/Spine.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/ColorComponent.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/MeshComponent.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/SpriteComponent.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/base/TransformComponent.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsBody.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsBox.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsPoly.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsSegment.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/PhysicsShape.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/component/physics/Separator.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/GameObject.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/core/SceneManager.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/object/MeshSprite.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/shortcode.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/EventDispatcher.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/KeyManager.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/Serialization.js","/Users/youyou/Desktop/CocosLiteProject5/frameworks/cocos2d-html5/cocoslite/utils/Time.js","/Users/youyou/Desktop/CocosLiteProject5/src/Run.js"]);
