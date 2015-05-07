@@ -11,7 +11,7 @@
     "use strict";
 
     var Component  = cl.getModule("component/Component");
-    var KeyManager = cl.getModule("core/KeyManager");
+    var KeyManager = cl.getModule("utils/KeyManager");
 
     var Params = function() {
 
